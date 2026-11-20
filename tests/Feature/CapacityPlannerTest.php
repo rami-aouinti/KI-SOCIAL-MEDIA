@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\WorkAllocationType;
+use App\Models\ContentIdea;
 use App\Models\WeeklyPlan;
 use App\Services\CapacityPlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -111,7 +112,7 @@ class CapacityPlannerTest extends TestCase
         ]);
     }
 
-    private function createIdea(WeeklyPlan $plan, string $title)
+    private function createIdea(WeeklyPlan $plan, string $title): ContentIdea
     {
         return $plan->contentIdeas()->create([
             'title' => $title,
