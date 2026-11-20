@@ -155,51 +155,105 @@ Le workflow est limité, local et ne nécessite pas de déploiement indépendant
 
 n8n pourrait être pertinent pour orchestrer des intégrations externes dans une évolution future. Pour ce MVP, il ajouterait un second système à configurer et à expliquer alors que l'objectif est de démontrer les règles métier dans le backend Laravel.
 
-### 4.3 Organisation du code visée
+### 4.3 Architecture en quatre couches
 
-Structure indicative, à adapter aux conventions Laravel et à la taille réelle du code :
+Le backend suit une séparation **Domain / Application / Infrastructure / Transport**. Il reste un monolithe Laravel : ces couches sont des frontières internes au code, pas des services ou des applications déployés séparément.
+
+#### Structure cible
 
 ```text
 app/
-  DTO/
-  Enums/
-  Http/
-    Controllers/
-    Requests/
-    Resources/
-  Models/
-  Services/
-    AI/
-    Planning/
-    Capacity/
+  Domain/
     Content/
+      Enums/
+      Events/
+      Exceptions/
+      Repositories/          # contrats, sans Eloquent
+    Planning/
+      Enums/
+    Shared/
+      ValueObjects/
+
+  Application/
+    Planning/
+      DTO/
+      UseCases/
+      Services/
+    Content/
+      DTO/
+      UseCases/
+      Services/
     Review/
+      DTO/
+      UseCases/
     Handoff/
+      DTO/
+      UseCases/
     Reporting/
-  Workflow/
+      Services/
+
+  Infrastructure/
+    Persistence/
+      Eloquent/
+        Models/
+        Repositories/
+    AI/
+      Mock/
+    Queue/
+      Jobs/
+      Listeners/
+    Providers/
+
+  Transport/
+    Http/
+      Controllers/
+      Requests/
+      Resources/
+    Console/
+      Commands/
+
 database/
   migrations/
   seeders/
-resources/
-  views/
 tests/
-  Feature/
   Unit/
-storage/
-  app/
-    demo/
-    reports/
+  Feature/
 ```
 
-Principes :
+#### Responsabilités et dépendances
 
-- Contrôleurs minces : HTTP, validation d'entrée et délégation aux services.
-- DTO immuables et typés (`readonly`) pour transporter les données validées entre les couches : planning, idées, inspirations, affectations, briefings, versions et provenance IA. La validation Laravel reste à la frontière ; les DTO représentent ensuite les données fiables utilisées par la persistance.
-- Services focalisés sur une responsabilité métier.
-- Enums pour les états et types stables.
-- Eloquent pour l'accès aux données ; pas de repository générique ajouté sans besoin concret.
-- Tests unitaires pour les calculs et règles isolées ; tests Feature pour les parcours HTTP et les règles de workflow.
-- Pas de couches vides ni d'abstractions ajoutées uniquement pour donner une impression de complexité.
+| Couche | Responsabilité | Dépendances autorisées |
+|---|---|---|
+| **Domain** | Règles métier indépendantes, états, événements métier, contrats de repositories | PHP natif et autres éléments Domain |
+| **Application** | Cas d'utilisation, orchestration, DTO, transactions et coordination des ports | Domain |
+| **Infrastructure** | Eloquent, SQL, implémentations des repositories, mock IA, queue et intégrations techniques | Domain et Application |
+| **Transport** | HTTP, validation d'entrée, sérialisation des réponses et commandes CLI | Application |
+
+La règle de dépendance est orientée vers le métier : **Domain ne dépend jamais de Laravel, Eloquent, HTTP ou Infrastructure**. Application ne connaît pas les détails de persistance. Infrastructure implémente les contrats attendus par le métier. Transport traduit les entrées/sorties et délègue les cas d'utilisation.
+
+#### Placement des éléments existants
+
+| Élément actuel | Destination |
+|---|---|
+| `app/Enums/*` | `Domain/*/Enums` |
+| `app/Events/*` et contrats d'événements métier | `Domain/*/Events` |
+| `app/Repositories/Contracts/*` | `Domain/*/Repositories` |
+| `app/DTOs/*` | `Application/*/DTO` |
+| `app/Services/*` | `Application/*/Services` ou `Application/*/UseCases`, selon leur responsabilité |
+| `app/Models/*` | `Infrastructure/Persistence/Eloquent/Models` |
+| `app/Repositories/Eloquent/*` | `Infrastructure/Persistence/Eloquent/Repositories` |
+| `app/Services/MockAiContentGenerator.php` | `Infrastructure/AI/Mock` |
+| `app/Jobs/*`, `app/Listeners/*` | `Infrastructure/Queue` |
+| `app/Providers/*` | `Infrastructure/Providers` |
+| `app/Http/Controllers/*` | `Transport/Http/Controllers` |
+| `app/Console/Commands/*` | `Transport/Console/Commands` |
+
+Les modèles Eloquent sont des objets de persistance et ne doivent pas être présentés comme des entités Domain pures. Les repositories ne sont introduits que lorsqu'ils isolent réellement la persistance ; pas de repository générique pour chaque modèle. Les DTO restent réservés aux frontières et aux données structurées. Les transactions sont déclenchées par les cas d'utilisation Application, pas par les contrôleurs.
+
+#### Stratégie de migration
+
+La migration se fait par tranche fonctionnelle, en conservant le comportement et les tests à chaque étape. Les namespaces, imports, bindings du conteneur, seeders et tests doivent être déplacés ensemble. Les anciens chemins ne doivent pas subsister comme seconde implémentation métier. Aucun changement de comportement fonctionnel, aucune intégration IA réelle et aucune publication réelle ne sont introduits par cette réorganisation.
+
 
 ## 5. Modèle de données relationnel
 
