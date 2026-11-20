@@ -6,9 +6,11 @@ namespace App\Events;
 
 use App\Contracts\Events\ContentWorkflowEvent;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
+use Illuminate\Foundation\Events\Dispatchable;
 
 final readonly class ContentRejected implements ContentWorkflowEvent, ShouldDispatchAfterCommit
 {
+    use Dispatchable;
     public function __construct(public int $versionId)
     {
     }
