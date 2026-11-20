@@ -278,7 +278,7 @@ docker run --rm -u "$(id -u):$(id -g)" \
   laravelsail/php84-composer:latest \
   composer require laravel/sail --dev
 
-docker run --rm -u "$(id -u):$(id -g)" \
+docker run --rm -it -u "$(id -u):$(id -g)" \
   -v "$PWD":/var/www/html -w /var/www/html \
   laravelsail/php84-composer:latest \
   php artisan sail:install
