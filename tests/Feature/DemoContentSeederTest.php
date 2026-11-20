@@ -45,6 +45,14 @@ class DemoContentSeederTest extends TestCase
         $this->assertTrue($plan->input_data['generation']['simulated']);
     }
 
+    public function test_dashboard_shows_a_helpful_empty_state_without_a_weekly_plan(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('No demo plan found')
+            ->assertSee('DemoContentSeeder');
+    }
+
     public function test_dashboard_and_weekly_report_command_work_with_seeded_demo_data(): void
     {
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
