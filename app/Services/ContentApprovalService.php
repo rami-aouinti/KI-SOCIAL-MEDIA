@@ -52,13 +52,7 @@ class ContentApprovalService
             }
 
             $this->readinessValidator->assertReady($locked);
-
-            $reviewer = trim($reviewer);
-            if ($reviewer === '') {
-                throw ValidationException::withMessages([
-                    'reviewer' => 'A reviewer is required.',
-                ]);
-            }
+            $reviewer = $this->normalizeReviewer($reviewer);
 
             $this->approvals->create([
                 'content_version_id' => $locked->id,
@@ -88,12 +82,7 @@ class ContentApprovalService
                 throw new LogicException('Only versions in review can be rejected.');
             }
 
-            $reviewer = trim($reviewer);
-            if ($reviewer === '') {
-                throw ValidationException::withMessages([
-                    'reviewer' => 'A reviewer is required.',
-                ]);
-            }
+            $reviewer = $this->normalizeReviewer($reviewer);
 
             $this->approvals->create([
                 'content_version_id' => $locked->id,
@@ -111,5 +100,24 @@ class ContentApprovalService
 
             return $locked->refresh();
         });
+    }
+
+    private function normalizeReviewer(string $reviewer): string
+    {
+        $reviewer = trim($reviewer);
+
+        if ($reviewer === '') {
+            throw ValidationException::withMessages([
+                'reviewer' => 'A reviewer is required.',
+            ]);
+        }
+
+        if (mb_strlen($reviewer) > 120) {
+            throw ValidationException::withMessages([
+                'reviewer' => 'The reviewer name may not be greater than 120 characters.',
+            ]);
+        }
+
+        return $reviewer;
     }
 }
