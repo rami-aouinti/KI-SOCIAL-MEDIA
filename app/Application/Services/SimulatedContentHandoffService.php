@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Services;
 
 use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Records\ContentApprovalRecord;
 use App\Domain\Content\Records\ContentHandoffRecord;
 use App\Domain\Events\ContentHandedOffEvent;
 use App\Domain\Events\WorkflowEventPublisherInterface;
@@ -32,7 +33,7 @@ final class SimulatedContentHandoffService
             $locked = $this->versions->lockForWorkflow($versionId, true);
             $existing = $this->handoffs->findForVersion($locked->id);
 
-            if ($existing instanceof \App\Domain\Content\Records\ContentHandoffRecord) {
+            if ($existing instanceof ContentHandoffRecord) {
                 return $existing;
             }
 
@@ -43,7 +44,7 @@ final class SimulatedContentHandoffService
                 $locked->contentHash,
             );
 
-            if (!$approval instanceof \App\Domain\Content\Records\ContentApprovalRecord) {
+            if (! $approval instanceof ContentApprovalRecord) {
                 throw ValidationException::withMessages([
                     'approval' => 'A valid approval for this exact content version is required.',
                 ]);
