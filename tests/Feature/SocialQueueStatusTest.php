@@ -15,6 +15,8 @@ class SocialQueueStatusTest extends TestCase
 
     public function test_queue_status_reports_pending_and_failed_jobs_for_the_selected_queue(): void
     {
+        config(['queue.default' => 'database']);
+
         $createdAt = Carbon::parse('2026-11-20 10:00:00')->timestamp;
 
         DB::table('jobs')->insert([
@@ -53,6 +55,8 @@ class SocialQueueStatusTest extends TestCase
 
     public function test_queue_status_can_filter_an_explicit_queue(): void
     {
+        config(['queue.default' => 'database']);
+
         $this->artisan('social:queue-status', ['--queue' => 'publishing', '--json' => true])
             ->expectsOutputToContain('"queue": "publishing"')
             ->expectsOutputToContain('"pending_jobs": 0')
