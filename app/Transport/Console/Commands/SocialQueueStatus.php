@@ -36,7 +36,7 @@ final class SocialQueueStatus extends Command
             ], self::SUCCESS);
         }
 
-        if (! Schema::hasTable('jobs') || ! Schema::hasTable('failed_jobs')) {
+        if (!Schema::hasTable('jobs') || !Schema::hasTable('failed_jobs')) {
             return $this->display([
                 'status' => 'degraded',
                 'connection' => $connection,
