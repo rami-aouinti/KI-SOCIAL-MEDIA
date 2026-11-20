@@ -4,7 +4,4 @@ declare(strict_types=1);
 
 namespace App\Contracts\Events;
 
-interface ContentWorkflowEvent
-{
-    public function contentVersionId(): int;
-}
+class_alias(\App\Domain\Events\ContentWorkflowEvent::class, __NAMESPACE__.'\\ContentWorkflowEvent');
