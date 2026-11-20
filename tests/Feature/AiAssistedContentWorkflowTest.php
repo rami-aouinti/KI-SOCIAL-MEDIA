@@ -55,6 +55,29 @@ class AiAssistedContentWorkflowTest extends TestCase
         $this->assertContains('approval', $workTypes);
     }
 
+    public function test_invalid_ai_plan_output_is_rejected_before_anything_is_persisted(): void
+    {
+        $this->app->instance(AiContentGeneratorInterface::class, new class implements AiContentGeneratorInterface {
+            public function generateWeeklyPlan(array $context): array
+            {
+                return ['ideas' => []];
+            }
+
+            public function generateBriefing(array $context): array
+            {
+                return [];
+            }
+        });
+
+        try {
+            app(AiAssistedContentWorkflow::class)->generateWeeklyPlan($this->planInput());
+            $this->fail('Invalid generated output should fail validation.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('weekly_plans', 0);
+            $this->assertDatabaseCount('content_ideas', 0);
+        }
+    }
+
     public function test_mock_ai_generates_a_complete_briefing_and_immutable_version_for_human_review(): void
     {
         $plan = app(AiAssistedContentWorkflow::class)->generateWeeklyPlan($this->planInput())['plan'];
