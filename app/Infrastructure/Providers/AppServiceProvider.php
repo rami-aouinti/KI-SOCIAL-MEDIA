@@ -6,6 +6,8 @@ namespace App\Infrastructure\Providers;
 
 use App\Application\Contracts\ContentBriefingWriterInterface;
 use App\Application\Contracts\WeeklyPlanWriterInterface;
+use App\Application\Contracts\WeeklyReportDataSourceInterface;
+use App\Application\Contracts\WeeklyReportStorageInterface;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Events\WorkflowEventPublisherInterface;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;
@@ -19,7 +21,9 @@ use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentBriefing
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentHandoffRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentVersionRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentWeeklyPlanWriter;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentWeeklyReportDataSource;
 use App\Infrastructure\Queue\Listeners\QueueWeeklyReportRefresh;
+use App\Infrastructure\Storage\LaravelWeeklyReportStorage;
 use App\Infrastructure\Transactions\LaravelTransactionManager;
 use App\Transport\Events\ContentApproved;
 use App\Transport\Events\ContentHandedOff;
