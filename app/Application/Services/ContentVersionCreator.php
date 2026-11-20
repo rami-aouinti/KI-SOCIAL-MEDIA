@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Services;
 
 use App\Application\DTO\ContentVersionData;
+use App\Domain\Content\ValueObjects\ContentVersionSnapshot;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
@@ -48,22 +49,17 @@ class ContentVersionCreator
                 (int) $briefing->getKey()
             );
 
-            $snapshot = $versionData->snapshot();
-
-            // The approval fingerprint covers copy, variants, media, channels,
-            // schedule and generation provenance.
-            $approvalPayload = $versionData->approvalPayload();
-            $canonicalSnapshot = json_encode(
-                $approvalPayload,
-                JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+            // The Domain value object defines the exact immutable content fingerprint.
+            $snapshot = ContentVersionSnapshot::fromApprovalPayload(
+                $versionData->approvalPayload(),
             );
 
             return $this->versions->createNextForBriefing($lockedBriefing, [
-                'snapshot' => $snapshot,
+                'snapshot' => $snapshot->content(),
                 'media_reference' => $versionData->mediaReference,
                 'channels' => $versionData->channels,
                 'scheduled_at' => $versionData->scheduledAt,
-                'content_hash' => hash('sha256', $canonicalSnapshot),
+                'content_hash' => $snapshot->hash(),
                 'status' => 'draft',
             ]);
         });
