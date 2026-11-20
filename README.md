@@ -24,6 +24,9 @@ Le projet privilégie un workflow métier complet et testable plutôt qu'une pla
 - Validation liée au hash de la version exacte ; une nouvelle version doit être validée séparément.
 - Transmission simulée et idempotente : une seule transmission par version, avec payload JSON persisté.
 - Rapport hebdomadaire TXT généré depuis les données enregistrées.
+- Événements métier `ContentApproved`, `ContentRejected` et `ContentHandedOff`, dispatchés uniquement après le commit de la transaction.
+- Listener qui planifie un job Laravel pour actualiser le rapport hebdomadaire après chaque décision ou transmission.
+- Job `RefreshWeeklyReportForContentVersion` avec trois tentatives, exécuté par la queue `database`.
 - Page d'accueil de démonstration : planning, inspirations, capacités, briefing, validation et handoff.
 
 Les transmissions ne contactent aucune API externe. Le statut `handed_off` signifie uniquement que le payload a été enregistré dans la simulation. Le mock IA utilise des réponses de test déterministes, validées avant stockage ; il ne contacte aucun modèle externe.
@@ -90,6 +93,9 @@ Le rapport est écrit dans `storage/app/private/weekly-reports/`. La page d'accu
 ./vendor/bin/sail artisan test tests/Feature/WeeklyReportGeneratorTest.php
 ./vendor/bin/sail artisan test tests/Feature/DemoContentSeederTest.php
 
+# Démarrer le worker asynchrone (garder ce terminal ouvert)
+./vendor/bin/sail artisan queue:work --tries=3
+
 # Voir les migrations
 ./vendor/bin/sail artisan migrate:status
 
@@ -110,7 +116,9 @@ Le rapport est écrit dans `storage/app/private/weekly-reports/`. La page d'accu
 
 ## 8. Tests et preuve
 
-Les tests couvrent notamment la génération du planning, les inspirations, les affectations, les capacités, les briefings, l'immuabilité des versions, la validation humaine, la transmission idempotente, l'export du rapport et le scénario de démonstration.
+Les tests couvrent notamment la génération du planning, les inspirations, les affectations, les capacités, les briefings, l'immuabilité des versions, la validation humaine, la transmission idempotente, l'export du rapport, le dispatch du job de rapport par les événements et le scénario de démonstration.
+
+Pour que les rapports soient actualisés automatiquement après une approbation, un rejet ou un handoff, le worker doit être actif (`queue:work`). Sans worker, les jobs restent en attente dans la table `jobs` ; le workflow métier reste enregistré normalement.
 
 Les résultats doivent être copiés depuis l'exécution locale réelle de `./vendor/bin/sail artisan test`. Ne pas annoncer un nombre de tests sans avoir exécuté la suite après le dernier changement.
 
