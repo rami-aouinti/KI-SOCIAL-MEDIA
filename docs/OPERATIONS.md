@@ -2,11 +2,11 @@
 
 ## Health check
 
-Run the dependency checks from the application root:
+Run dependency checks from the application root:
 
 ```bash
-php artisan social:health-check
-php artisan social:health-check --json
+./vendor/bin/sail artisan social:health-check
+./vendor/bin/sail artisan social:health-check --json
 ```
 
 The command checks the configured database connection, cache round-trip, local
@@ -17,29 +17,60 @@ option is intended for shell scripts and container health probes.
 The check does not call an external AI provider or publish content. The current
 AI adapter is a deterministic mock, and the current handoff remains simulated.
 
-## Queue workers
+## Docker services and queue worker
 
-The application uses Laravel's configured queue connection (database by
-default). Start a worker locally:
+The Compose stack starts a dedicated `queue-worker` service. It uses the same
+application image, source volume, environment and database network as the web
+container. It waits for MySQL to become healthy and restarts automatically.
+The worker processes the `default` database queue with three attempts, a
+60-second job timeout and a one-hour maximum worker lifetime.
+
+Start or inspect the complete stack:
 
 ```bash
-php artisan queue:work --queue=default --tries=3 --timeout=60
+./vendor/bin/sail up -d
+docker compose ps
+docker compose logs -f queue-worker
 ```
 
-Monitor and retry failed jobs with Laravel's built-in commands:
+Restart the worker after changing queue configuration or deploying new code:
 
 ```bash
-php artisan queue:failed
-php artisan queue:retry all
-php artisan queue:forget <failed-job-id>
+docker compose restart queue-worker
 ```
 
-Queue connections are configured to dispatch jobs after the surrounding
-database transaction commits. This prevents a worker from observing records
-that have not committed yet. In production, keep the worker timeout shorter
-than the queue connection's `retry_after` value and run workers under a process
-supervisor. Do not use the synchronous queue driver for long-running generation
-or report jobs.
+The worker can also be started manually when running outside Compose:
+
+```bash
+php artisan queue:work database --queue=default --sleep=3 --tries=3 --timeout=60 --max-time=3600
+```
+
+The queue connection uses `after_commit=true`, so queued work is dispatched
+only after the surrounding database transaction commits. The worker timeout
+(60 seconds) is shorter than the database queue `retry_after` (90 seconds).
+
+## Queue diagnostics and failed jobs
+
+Inspect pending and failed jobs:
+
+```bash
+./vendor/bin/sail artisan social:queue-status
+./vendor/bin/sail artisan social:queue-status --json
+./vendor/bin/sail artisan social:queue-status --queue=default
+```
+
+Laravel's built-in commands remain available:
+
+```bash
+./vendor/bin/sail artisan queue:failed
+./vendor/bin/sail artisan queue:retry all
+./vendor/bin/sail artisan queue:forget <failed-job-id>
+```
+
+A pending count greater than zero is not automatically an error: jobs may be
+scheduled for later execution. Check the oldest pending timestamp and worker
+logs before retrying jobs. The queue-status command currently reports database
+queue metrics; other queue drivers are explicitly reported as not applicable.
 
 ## Performance and operational guidance
 
@@ -47,8 +78,8 @@ or report jobs.
   request handlers; dispatch bounded queue jobs instead.
 - Use pagination for growing content collections and select only required
   columns for reporting queries.
-- Add indexes only for measured query patterns; validate them with
-  `EXPLAIN` against production-like data.
+- Add indexes only for measured query patterns; validate them with `EXPLAIN`
+  against production-like data.
 - Use Redis for cache and queue only when the deployment provides and monitors
   Redis; the local MVP remains compatible with its database-backed defaults.
 - Use bounded retries and provider-specific rate limits before enabling real

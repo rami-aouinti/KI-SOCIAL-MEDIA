@@ -24,6 +24,33 @@ services:
         depends_on:
             mysql:
                 condition: service_healthy
+
+    queue-worker:
+        image: 'sail-8.4/app'
+        restart: unless-stopped
+        init: true
+        command:
+            - php
+            - artisan
+            - queue:work
+            - database
+            - --queue=default
+            - --sleep=3
+            - --tries=3
+            - --timeout=60
+            - --max-time=3600
+        environment:
+            WWWUSER: '${WWWUSER}'
+            LARAVEL_SAIL: 1
+        volumes:
+            - '.:/var/www/html'
+        networks:
+            - sail
+        depends_on:
+            mysql:
+                condition: service_healthy
+        stop_grace_period: 30s
+
     mysql:
         image: 'mysql:8.4'
         ports:
@@ -49,6 +76,7 @@ services:
             retries: 10
             timeout: 5s
             interval: 5s
+
     adminer:
         image: 'adminer:latest'
         restart: unless-stopped
@@ -61,9 +89,11 @@ services:
                 condition: service_healthy
         networks:
             - sail
+
 networks:
     sail:
         driver: bridge
+
 volumes:
     sail-mysql:
         driver: local
