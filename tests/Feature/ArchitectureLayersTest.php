@@ -15,7 +15,19 @@ use Tests\TestCase;
 
 class ArchitectureLayersTest extends TestCase
 {
-    public function test_application_domain_infrastructure_and_transport_classes_are_autoloadable(): void
+    public function test_app_root_contains_only_the_four_architecture_layers(): void
+    {
+        $directories = array_values(array_filter(
+            scandir(app_path()),
+            static fn (string $entry): bool => $entry !== '.' && $entry !== '..' && is_dir(app_path($entry)),
+        ));
+
+        sort($directories);
+
+        $this->assertSame(['Application', 'Domain', 'Infrastructure', 'Transport'], $directories);
+    }
+
+    public function test_classes_from_each_architecture_layer_are_autoloadable(): void
     {
         $this->assertTrue(class_exists(WeeklyPlanGenerator::class));
         $this->assertTrue(interface_exists(AiContentGeneratorInterface::class));
@@ -24,13 +36,5 @@ class ArchitectureLayersTest extends TestCase
         $this->assertTrue(class_exists(WeeklyPlan::class));
         $this->assertTrue(class_exists(EloquentContentVersionRepository::class));
         $this->assertTrue(class_exists(DashboardController::class));
-    }
-
-    public function test_legacy_namespaces_remain_available_during_the_migration(): void
-    {
-        $this->assertTrue(class_exists(\App\Services\WeeklyPlanGenerator::class));
-        $this->assertTrue(class_exists(\App\Models\WeeklyPlan::class));
-        $this->assertTrue(enum_exists(\App\Enums\ContentVersionStatus::class));
-        $this->assertTrue(interface_exists(\App\Repositories\Contracts\ContentVersionRepositoryInterface::class));
     }
 }
