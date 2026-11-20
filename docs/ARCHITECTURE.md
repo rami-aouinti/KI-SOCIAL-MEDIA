@@ -1183,3 +1183,26 @@ The bindings are registered in `AppServiceProvider`. This keeps the services ind
 
 **Scope decision:** repositories are introduced only around persistence that is shared by important workflows or contains non-trivial query logic. Simple read-only Eloquent relations remain on the models; there is no repository class for every model by default. This avoids boilerplate while keeping the application services focused on business orchestration.
 
+
+
+## 19. Événements métier et traitement asynchrone
+
+Les services applicatifs restent responsables des règles métier et des transactions. Ils émettent ensuite des événements factuels :
+
+- `ContentApproved` après l'approbation d'une version ;
+- `ContentRejected` après le rejet d'une version ;
+- `ContentHandedOff` après l'enregistrement d'une transmission simulée.
+
+Ces événements implémentent `ShouldDispatchAfterCommit`. Un rollback ne déclenche donc pas de traitement secondaire pour une opération qui n'a pas été validée en base.
+
+Le listener `QueueWeeklyReportRefresh` réagit à ces trois événements et envoie le job `RefreshWeeklyReportForContentVersion` dans la queue Laravel. Le job retrouve le plan hebdomadaire lié à la version et régénère le fichier TXT via `WeeklyReportGenerator`. Il dispose de trois tentatives.
+
+Le traitement asynchrone n'effectue aucune publication, aucun appel IA et aucune notification externe. Il actualise uniquement un artefact local à partir des données persistées.
+
+Pour exécuter les jobs en environnement local :
+
+```bash
+./vendor/bin/sail artisan queue:work --tries=3
+```
+
+La connexion de queue `database` est utilisée par défaut. Si aucun worker ne tourne, les jobs restent en attente dans la table `jobs` et seront traités au prochain démarrage du worker. Les tests vérifient que les trois événements demandent bien l'actualisation du rapport.
