@@ -52,7 +52,16 @@ jobs:
         run: php artisan migrate --force
 
       - name: Laravel Pint
-        run: vendor/bin/pint --test
+        run: |
+          vendor/bin/pint
+          git diff --binary > /tmp/pint.patch
+
+      - name: Upload Pint formatting patch
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pint-format-patch
+          path: /tmp/pint.patch
 
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress
