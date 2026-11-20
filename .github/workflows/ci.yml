@@ -52,7 +52,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Laravel Pint
-        run: vendor/bin/pint --test --diff
+        run: vendor/bin/pint --test --diff=udiff
 
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress
