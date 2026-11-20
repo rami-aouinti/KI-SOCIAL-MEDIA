@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Storage;
 class WeeklyReportGenerator
 {
     public function __construct(
-        private readonly CapacityPlanner $capacityPlanner,
+        private readonly CapacityPlanner $capacityPlanner,\n        private readonly WeeklyReportDataSourceInterface $reports,\n        private readonly WeeklyReportStorageInterface $storage,
     ) {}
 
     /**
      * Build a human-readable report from persisted records only.
      */
-    public function generate(WeeklyPlan $weeklyPlan): string
+    public function generate(mixed $weeklyPlan): string
     {
         // Route model binding (or a caller) may already provide a loaded plan.
         // Load only missing relations and avoid re-querying the weekly_plans row.
@@ -166,12 +166,12 @@ class WeeklyReportGenerator
     /**
      * Store the report on the local Laravel disk and return its relative path.
      */
-    public function store(WeeklyPlan $weeklyPlan): string
+    public function store(mixed $weeklyPlan): string
     {
-        $week = $weeklyPlan->week_start->toDateString();
+        $plan = $this->reports->load($weeklyPlan);\n        $week = $plan->week_start->toDateString();
         $path = sprintf('weekly-reports/weekly-report-%s.txt', $week);
 
-        Storage::disk('local')->put($path, $this->generate($weeklyPlan));
+        $this->storage->put($path, $this->generate($plan));
 
         return $path;
     }
