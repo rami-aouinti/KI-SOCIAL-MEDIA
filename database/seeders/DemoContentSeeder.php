@@ -86,9 +86,9 @@ class DemoContentSeeder extends Seeder
         $approvalService = app(ContentApprovalService::class);
 
         if ($version->status === ContentVersionStatus::DRAFT) {
-            $approvalService->submitForReview($version);
+            $approvalService->submitForReview((int) $version->getKey());
             $version = $approvalService->approve(
-                $version,
+                (int) $version->getKey(),
                 'Demo reviewer',
                 'Synthetic demonstration approval. AI output reviewed by a human.'
             );
@@ -101,6 +101,6 @@ class DemoContentSeeder extends Seeder
         }
 
         // The handoff service is idempotent and never contacts a real platform.
-        app(SimulatedContentHandoffService::class)->handoff($version);
+        app(SimulatedContentHandoffService::class)->handoff((int) $version->id);
     }
 }

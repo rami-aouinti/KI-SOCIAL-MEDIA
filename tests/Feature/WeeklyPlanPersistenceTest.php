@@ -29,7 +29,7 @@ class WeeklyPlanPersistenceTest extends TestCase
 
         $this->assertDatabaseHas('weekly_plans', [
             'id' => $plan->id,
-            'week_start' => '2026-11-23',
+            'week_start' => '2026-11-23 00:00:00',
             'status' => 'draft',
         ]);
 
