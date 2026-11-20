@@ -8,6 +8,7 @@ use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Infrastructure\Persistence\Eloquent\Models\User;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Database\Seeders\DemoContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,7 +49,8 @@ class DemoContentSeederTest extends TestCase
 
     public function test_dashboard_shows_a_helpful_empty_state_without_a_weekly_plan(): void
     {
-        $this->get('/')
+        $this->actingAs(User::factory()->create())
+            ->get('/')
             ->assertOk()
             ->assertSee('No demo plan found')
             ->assertSee('DemoContentSeeder');
@@ -58,7 +60,8 @@ class DemoContentSeederTest extends TestCase
     {
         Artisan::call('db:seed', ['--class' => DemoContentSeeder::class]);
 
-        $this->get('/')
+        $this->actingAs(User::factory()->create())
+            ->get('/')
             ->assertOk()
             ->assertSee('KI Social Media')
             ->assertSee('Winter eyewear tips')
@@ -66,6 +69,7 @@ class DemoContentSeederTest extends TestCase
             ->assertSee('3 priorities · 2 reserves')
             ->assertSee('planned')
             ->assertSee('Briefing: ready');
+
         $this->get('/weekly-plans/'.WeeklyPlan::query()->firstOrFail()->id.'/report')->assertOk();
 
         Storage::fake('local');
