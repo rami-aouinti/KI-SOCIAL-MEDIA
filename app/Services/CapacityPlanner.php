@@ -31,11 +31,11 @@ class CapacityPlanner
         $capacityLimits = $weeklyPlan->capacity_limits ?? [];
         $allocationsByPerson = [];
 
-        $ideas = $weeklyPlan->contentIdeas()
-            ->with('workAllocations')
-            ->get();
+        // Reuse relations already eager-loaded by callers (e.g. dashboard/report).
+        // This avoids issuing a second query for the same allocations.
+        $weeklyPlan->loadMissing('contentIdeas.workAllocations');
 
-        foreach ($ideas as $idea) {
+        foreach ($weeklyPlan->contentIdeas as $idea) {
             foreach ($idea->workAllocations as $allocation) {
                 $personKey = $allocation->person_key;
                 $allocationsByPerson[$personKey] = ($allocationsByPerson[$personKey] ?? 0)
