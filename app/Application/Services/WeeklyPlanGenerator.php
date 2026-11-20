@@ -80,11 +80,17 @@ class WeeklyPlanGenerator
                 return;
             }
 
-            $priorities = count(array_filter($ideas, static fn (mixed $idea): bool =>
-                is_array($idea) && ($idea['priority_type'] ?? null) === 'priority'
+            $priorities = count(array_filter(
+                $ideas,
+                static function (mixed $idea): bool {
+                    return is_array($idea) && ($idea['priority_type'] ?? null) === 'priority';
+                },
             ));
-            $reserves = count(array_filter($ideas, static fn (mixed $idea): bool =>
-                is_array($idea) && ($idea['priority_type'] ?? null) === 'reserve'
+            $reserves = count(array_filter(
+                $ideas,
+                static function (mixed $idea): bool {
+                    return is_array($idea) && ($idea['priority_type'] ?? null) === 'reserve';
+                },
             ));
 
             if ($priorities !== 3) {
