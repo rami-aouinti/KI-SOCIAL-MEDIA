@@ -7,7 +7,8 @@ namespace App\Services;
 use App\Enums\ContentApprovalDecision;
 use App\Enums\ContentVersionStatus;
 use App\Models\ContentVersion;
-use App\Models\ContentVersionApproval;
+use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
+use App\Repositories\Contracts\ContentVersionRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,13 +18,15 @@ class ContentApprovalService
 {
     public function __construct(
         private readonly ContentVersionReadinessValidator $readinessValidator,
+        private readonly ContentVersionRepositoryInterface $versions,
+        private readonly ContentApprovalRepositoryInterface $approvals,
     ) {
     }
 
     public function submitForReview(ContentVersion $version): ContentVersion
     {
         return DB::transaction(function () use ($version): ContentVersion {
-            $locked = ContentVersion::query()->lockForUpdate()->findOrFail($version->id);
+            $locked = $this->versions->lockForWorkflow((int) $version->id);
 
             if ($locked->status !== ContentVersionStatus::DRAFT) {
                 throw new LogicException('Only draft versions can be submitted for review.');
@@ -42,10 +45,7 @@ class ContentApprovalService
         ?string $comment = null,
     ): ContentVersion {
         return DB::transaction(function () use ($version, $reviewer, $comment): ContentVersion {
-            $locked = ContentVersion::query()
-                ->with('briefing.contentIdea.workAllocations')
-                ->lockForUpdate()
-                ->findOrFail($version->id);
+            $locked = $this->versions->lockForWorkflow((int) $version->id, true);
 
             if ($locked->status !== ContentVersionStatus::IN_REVIEW) {
                 throw new LogicException('Only versions in review can be approved.');
@@ -60,7 +60,7 @@ class ContentApprovalService
                 ]);
             }
 
-            ContentVersionApproval::create([
+            $this->approvals->create([
                 'content_version_id' => $locked->id,
                 'reviewer' => $reviewer,
                 'decision' => ContentApprovalDecision::APPROVED,
@@ -82,7 +82,7 @@ class ContentApprovalService
         ?string $comment = null,
     ): ContentVersion {
         return DB::transaction(function () use ($version, $reviewer, $comment): ContentVersion {
-            $locked = ContentVersion::query()->lockForUpdate()->findOrFail($version->id);
+            $locked = $this->versions->lockForWorkflow((int) $version->id);
 
             if ($locked->status !== ContentVersionStatus::IN_REVIEW) {
                 throw new LogicException('Only versions in review can be rejected.');
@@ -95,7 +95,7 @@ class ContentApprovalService
                 ]);
             }
 
-            ContentVersionApproval::create([
+            $this->approvals->create([
                 'content_version_id' => $locked->id,
                 'reviewer' => $reviewer,
                 'decision' => ContentApprovalDecision::REJECTED,
