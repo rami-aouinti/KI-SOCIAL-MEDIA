@@ -26,6 +26,25 @@ Cette section distingue les fonctions présentes dans le dépôt des éléments 
 
 Le nom `content_version_approvals` correspond à l'historique des validations et `content_handoff_records` aux transmissions simulées. Le rapport est un fichier texte généré par `WeeklyReportGenerator`, pas une statistique codée en dur.
 
+### Schéma réellement persisté dans le MVP
+
+Les listes de champs des sections suivantes décrivent le modèle de conception envisagé. Elles ne constituent pas toutes le schéma SQL livré. Les champs effectivement utilisés par les modèles Eloquent du dépôt sont :
+
+| Table | Champs métier persistés |
+|---|---|
+| `weekly_plans` | `week_start`, `seasonal_occasion`, `input_data`, `capacity_limits`, `status` |
+| `inspiration_references` | `weekly_plan_id`, `channel`, `source_id`, `description`, `metrics` |
+| `content_ideas` | `weekly_plan_id`, `title`, `topic`, `target_audience`, `channels`, `format`, `priority_type`, `selection_reason`, `responsible_person`, `planned_at`, `estimated_minutes`, `status` |
+| `work_allocations` | `content_idea_id`, `person_key`, `work_type`, `estimated_minutes` |
+| `content_briefings` | `content_idea_id`, `hook`, `body`, `filming_plan`, `on_screen_text`, `cover_idea`, `cta_text`, `appointment_url`, `status` |
+| `content_versions` | `content_briefing_id`, `version_number`, `snapshot`, `media_reference`, `channels`, `scheduled_at`, `content_hash`, `status` |
+| `content_version_approvals` | `content_version_id`, `reviewer`, `decision`, `content_hash`, `comment`, `reviewed_at` |
+| `content_handoff_records` | `content_version_id`, `content_version_approval_id`, `idempotency_key`, `payload`, `status`, `handed_off_at` |
+
+Les clés primaires, clés étrangères, contraintes uniques et timestamps sont définis dans les migrations. En particulier, le snapshot JSON de `content_versions` contient le contenu et les variantes par canal ; les approbations conservent la décision, le hash approuvé et les informations du réviseur. Il n'existe pas de colonne séparée `snapshot` dans la table des approbations.
+
+Le service de capacité calcule la charge et émet des avertissements. Il ne choisit pas automatiquement une nouvelle affectation et ne propose pas encore de replanification automatisée : toute adaptation reste une décision humaine.
+
 ### Tatsächlicher Implementierungsstand
 
 Die Tabelle oben zeigt den überprüften Implementierungsstand. Planung, Kapazitätsberechnung, Briefing, unveränderliche Versionen, menschliche Freigabe, idempotente simulierte Übergabe und TXT-Wochenbericht sind im Repository implementiert und getestet. Reale Social-Media-Veröffentlichungen sowie Live-Trend- und Performance-Daten sind ausdrücklich nicht implementiert. Alle Demo-Referenzen und Medienkennungen sind synthetisch.
@@ -827,7 +846,7 @@ Vorgeschlagene Felder:
 
 Eine einzige Gesamtzeit pro Beitrag reicht nicht aus, um die Arbeitslast zu erklären. Die einzelnen Zuordnungen beantworten: Welche Aufgabe ist erforderlich, wer übernimmt sie und wie viele Minuten werden benötigt? Die Gesamtlast pro Person wird aus diesen Einträgen berechnet und mit der verfügbaren Kapazität verglichen.
 
-Das System darf die Kapazität niemals stillschweigend erhöhen. Bei einer Überschreitung wird die Differenz sichtbar gemacht und eine begründete Alternative vorgeschlagen: eine Idee verschieben, eine Reserve verwenden, eine Aufgabe realistisch neu zuweisen oder den Umfang reduzieren.
+Das System darf die Kapazität niemals stillschweigend erhöhen. Bei einer Überschreitung zeigt das MVP die Differenz an. Das Verschieben einer Idee, die Nutzung einer Reserve, eine neue Aufgabenzuordnung oder eine Umfangsreduzierung bleiben menschliche Entscheidungen; es wird keine Alternative automatisch berechnet.
 
 ### 5.6 Tabelle `content_briefings`
 
