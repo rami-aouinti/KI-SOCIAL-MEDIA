@@ -51,11 +51,8 @@ jobs:
           DB_DATABASE: database/database.sqlite
         run: php artisan migrate --force
 
-      - name: Laravel Pint
-        run: vendor/bin/pint
-
-      - name: PHP_CodeSniffer (PSR-12)
-        run: vendor/bin/phpcs --standard=PSR12 --exclude=PSR1.Methods.CamelCapsMethodName app tests
+      - name: Laravel Pint (style check)
+        run: vendor/bin/pint --test
 
       - name: PHPStan
         run: vendor/bin/phpstan analyse --no-progress
