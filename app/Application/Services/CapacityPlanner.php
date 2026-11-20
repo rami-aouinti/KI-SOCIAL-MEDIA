@@ -7,8 +7,8 @@ namespace App\Application\Services;
 final class CapacityPlanner
 {
     /**
-     * @param array<string, int|numeric-string|null> $capacityLimits
-     * @param iterable<array{person_key: string, estimated_minutes: int}> $allocations
+     * @param  array<string, int|numeric-string|null>  $capacityLimits
+     * @param  iterable<array{person_key: string, estimated_minutes: int}>  $allocations
      * @return array{
      *     within_capacity: bool,
      *     people: array<string, array{
