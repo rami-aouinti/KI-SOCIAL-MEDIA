@@ -37,7 +37,13 @@ Les transmissions ne contactent aucune API externe. Le statut `handed_off` signi
 - **PHP 8.4 / Laravel / Eloquent** : conventions, validation, migrations et injection de dépendances.
 - **MySQL 8.4** : base relationnelle du projet et environnement Docker/Sail.
 - **Contrat IA interchangeable** : `AiContentGeneratorInterface`, implémentation `MockAiContentGenerator` et orchestration par `AiAssistedContentWorkflow`. Le binding est déclaré dans `AppServiceProvider`.
-- **Services applicatifs ciblés** : `AiAssistedContentWorkflow`, `WeeklyPlanGenerator`, `CapacityPlanner`, `ContentVersionCreator`, `ContentApprovalService`, `SimulatedContentHandoffService`, `WeeklyReportGenerator`.
+- **Architecture en quatre couches** : `Domain`, `Application`, `Infrastructure` et `Transport`.
+- **Domain** : contrats métier (génération IA, repositories, événements) et enums sans dépendance HTTP.
+- **Application** : cas d'utilisation, services applicatifs et DTOs.
+- **Infrastructure** : modèles Eloquent, repositories Eloquent, mock IA, événements Laravel et traitement asynchrone.
+- **Transport** : contrôleurs HTTP, commandes Console et adaptation des entrées/sorties.
+- **Composition root** : `AppServiceProvider` relie les contrats Domain aux adaptateurs Infrastructure.
+- **Compatibilité** : les anciens namespaces `App\\Services`, `App\\Models`, `App\\DTOs`, `App\\Enums`, `App\\Repositories`, `App\\Events`, `App\\Jobs` et `App\\Listeners` sont conservés temporairement via des alias ; le code applicatif utilise les nouveaux namespaces.
 - **Seeder idempotent** : charge un jeu de données fictif complet sans créer de doublons lorsqu'il est exécuté plusieurs fois.
 - **Commande Artisan** : exporte le rapport TXT depuis le plan enregistré.
 - **Enums** pour les statuts, priorités, décisions et types d'affectation.
@@ -45,6 +51,31 @@ Les transmissions ne contactent aucune API externe. Le statut `handed_off` signi
 - **Tests unitaires et Feature** pour protéger les règles métier.
 
 Les choix et leurs explications sont détaillés en français et en allemand dans [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+### Structure du code
+
+```text
+app/
+├── Domain/
+│   ├── Content/AI/              # contrat du générateur IA
+│   ├── Events/                  # contrat des événements de workflow
+│   ├── Repositories/             # ports de persistance
+│   └── Shared/Enums/             # statuts, décisions et types métier
+├── Application/
+│   ├── DTO/                      # données structurées des cas d'utilisation
+│   └── Services/                 # workflows et règles applicatives
+├── Infrastructure/
+│   ├── AI/Mock/                  # fournisseur IA déterministe
+│   ├── Events/                   # événements Laravel après commit
+│   ├── Persistence/Eloquent/     # modèles et repositories Eloquent
+│   └── Queue/                    # jobs et listeners asynchrones
+├── Transport/
+│   ├── Http/Controllers/         # entrée HTTP
+│   └── Console/Commands/         # entrée CLI
+└── Providers/                    # composition root Laravel
+```
+
+Les dépendances techniques sont assemblées dans le provider. Les contrôleurs et commandes délèguent aux services Application. Les transactions des workflows restent dans Application ; les repositories Infrastructure réalisent les opérations de persistance.
 
 ## 4. Démarrage local
 
