@@ -74,9 +74,8 @@ class AppServiceProvider extends ServiceProvider
             class_exists($legacyClass);
         }
 
-        Event::listen(
-            [ContentApproved::class, ContentRejected::class, ContentHandedOff::class],
-            QueueWeeklyReportRefresh::class,
-        );
+        Event::listen(ContentApproved::class, QueueWeeklyReportRefresh::class);
+        Event::listen(ContentRejected::class, QueueWeeklyReportRefresh::class);
+        Event::listen(ContentHandedOff::class, QueueWeeklyReportRefresh::class);
     }
 }
