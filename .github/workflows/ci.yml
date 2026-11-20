@@ -59,14 +59,18 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: vendor/bin/pint
 
-      - name: Commit formatting changes
+      - name: Apply Rector transformations
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: vendor/bin/rector process
+
+      - name: Commit automated code formatting
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           if ! git diff --quiet -- app tests database; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add app tests database
-            git commit -m "style: apply Laravel Pint formatting"
+            git commit -m "style: apply Pint and Rector formatting"
             git push origin HEAD:master
           fi
 
@@ -78,6 +82,11 @@ jobs:
         run: vendor/bin/phpstan analyse --no-progress
 
       - name: Rector dry-run
+        if: github.event_name == 'pull_request'
+        run: vendor/bin/rector process --dry-run
+
+      - name: Rector post-format verification
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: vendor/bin/rector process --dry-run
 
       - name: PHPUnit
