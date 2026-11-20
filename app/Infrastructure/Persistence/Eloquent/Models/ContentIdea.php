@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Models;
 
-use App\Enums\ContentIdeaPriority;
-use App\Enums\ContentIdeaStatus;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Domain\Shared\Enums\ContentIdeaStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
