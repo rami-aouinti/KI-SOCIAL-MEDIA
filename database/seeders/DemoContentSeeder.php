@@ -72,12 +72,12 @@ class DemoContentSeeder extends Seeder
 
         if (! $briefing) {
             $generated = app(AiAssistedContentWorkflow::class)->generateBriefing((int) $priority->getKey());
-            $briefing = $generated['briefing'];
+            $version = $generated['version'];
+        } else {
+            $version = $briefing->versions()
+                ->orderByDesc('version_number')
+                ->first();
         }
-
-        $version = $briefing->versions()
-            ->orderByDesc('version_number')
-            ->first();
 
         if (! $version) {
             throw new RuntimeException('The demo briefing has no generated content version.');
