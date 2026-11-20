@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Application\Contracts\ContentBriefingWriterInterface;
+use App\Application\Contracts\DashboardDataSourceInterface;
 use App\Application\Contracts\WeeklyPlanWriterInterface;
 use App\Application\Contracts\WeeklyReportDataSourceInterface;
 use App\Application\Contracts\WeeklyReportStorageInterface;
+use App\Application\DTO\DashboardData;
 use App\Application\DTO\WeeklyReportData;
+use App\Application\Services\DashboardQueryService;
 use App\Application\Services\WeeklyPlanGenerator;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Content\Entities\ContentBriefing as DomainContentBriefing;
@@ -17,6 +20,7 @@ use App\Domain\Content\Entities\ContentVersion as DomainContentVersion;
 use App\Domain\Planning\Entities\WeeklyPlan as DomainWeeklyPlan;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Infrastructure\Persistence\Eloquent\EloquentDashboardDataSource;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentBriefingWriter;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentVersionRepository;
@@ -63,6 +67,10 @@ class ArchitectureLayersTest extends TestCase
     public function test_classes_from_each_architecture_layer_are_autoloadable(): void
     {
         $this->assertTrue(class_exists(WeeklyPlanGenerator::class));
+        $this->assertTrue(class_exists(DashboardQueryService::class));
+        $this->assertTrue(class_exists(DashboardData::class));
+        $this->assertTrue(interface_exists(DashboardDataSourceInterface::class));
+        $this->assertTrue(class_exists(EloquentDashboardDataSource::class));
         $this->assertTrue(interface_exists(AiContentGeneratorInterface::class));
         $this->assertTrue(class_exists(DomainContentBriefing::class));
         $this->assertTrue(class_exists(DomainContentIdea::class));
@@ -82,5 +90,16 @@ class ArchitectureLayersTest extends TestCase
         $this->assertTrue(class_exists(EloquentWeeklyReportDataSource::class));
         $this->assertTrue(class_exists(LaravelWeeklyReportStorage::class));
         $this->assertTrue(class_exists(DashboardController::class));
+    }
+
+    public function test_dashboard_view_does_not_access_eloquent_relationships(): void
+    {
+        $view = file_get_contents(resource_path('views/welcome.blade.php'));
+
+        $this->assertIsString($view);
+        $this->assertStringNotContainsString('->contentIdeas', $view);
+        $this->assertStringNotContainsString('->inspirations', $view);
+        $this->assertStringNotContainsString('->briefing', $view);
+        $this->assertStringNotContainsString('Eloquent', $view);
     }
 }
