@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(AiContentGeneratorInterface::class, MockAiContentGenerator::class);
+        $this->app->bind(AiContentGeneratorInterface::class, MockAiContentGenerator::class);\n        $this->app->bind(WeeklyPlanWriterInterface::class, EloquentWeeklyPlanWriter::class);\n        $this->app->bind(ContentBriefingWriterInterface::class, EloquentContentBriefingWriter::class);
         $this->app->bind(TransactionManagerInterface::class, LaravelTransactionManager::class);
         $this->app->bind(WorkflowEventPublisherInterface::class, LaravelWorkflowEventPublisher::class);
         $this->app->bind(ContentVersionRepositoryInterface::class, EloquentContentVersionRepository::class);
