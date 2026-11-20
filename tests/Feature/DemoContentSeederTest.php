@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentApprovalDecision;
-use App\Enums\ContentVersionStatus;
-use App\Models\ContentHandoffRecord;
-use App\Models\ContentVersion;
-use App\Models\WeeklyPlan;
+use App\Domain\Shared\Enums\ContentApprovalDecision;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Domain\Content\AI\AiContentGeneratorInterface;
-use App\Enums\ContentVersionStatus;
-use App\Services\AiAssistedContentWorkflow;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Application\Services\AiAssistedContentWorkflow;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;

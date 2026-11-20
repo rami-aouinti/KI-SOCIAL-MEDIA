@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentApprovalDecision;
-use App\Enums\ContentBriefingStatus;
-use App\Enums\ContentIdeaPriority;
-use App\Enums\ContentVersionStatus;
-use App\Enums\WorkAllocationType;
-use App\Models\ContentHandoffRecord;
-use App\Models\ContentVersionApproval;
-use App\Models\WeeklyPlan;
-use App\Services\ContentApprovalService;
-use App\Services\ContentVersionCreator;
-use App\Services\SimulatedContentHandoffService;
+use App\Domain\Shared\Enums\ContentApprovalDecision;
+use App\Domain\Shared\Enums\ContentBriefingStatus;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Domain\Shared\Enums\WorkAllocationType;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersionApproval;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\ContentApprovalService;
+use App\Application\Services\ContentVersionCreator;
+use App\Application\Services\SimulatedContentHandoffService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -98,7 +98,7 @@ class SimulatedContentHandoffServiceTest extends TestCase
         app(SimulatedContentHandoffService::class)->handoff($version);
     }
 
-    private function createApprovedVersion(): \App\Models\ContentVersion
+    private function createApprovedVersion(): \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion
     {
         $version = $this->createVersion();
         $review = app(ContentApprovalService::class)->submitForReview($version);
@@ -106,7 +106,7 @@ class SimulatedContentHandoffServiceTest extends TestCase
         return app(ContentApprovalService::class)->approve($review, 'Person B');
     }
 
-    private function createVersion(array $overrides = []): \App\Models\ContentVersion
+    private function createVersion(array $overrides = []): \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion
     {
         $plan = WeeklyPlan::create([
             'week_start' => '2026-11-23',
@@ -157,7 +157,7 @@ class SimulatedContentHandoffServiceTest extends TestCase
         ], $overrides));
     }
 
-    private function addApproval(\App\Models\ContentVersion $version): void
+    private function addApproval(\App\Infrastructure\Persistence\Eloquent\Models\ContentVersion $version): void
     {
         ContentVersionApproval::create([
             'content_version_id' => $version->id,

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentBriefingStatus;
-use App\Enums\ContentIdeaPriority;
-use App\Models\ContentBriefing;
-use App\Models\WeeklyPlan;
+use App\Domain\Shared\Enums\ContentBriefingStatus;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -64,7 +64,7 @@ class ContentBriefingPersistenceTest extends TestCase
         ]);
     }
 
-    private function createPriorityIdea(): \App\Models\ContentIdea
+    private function createPriorityIdea(): \App\Infrastructure\Persistence\Eloquent\Models\ContentIdea
     {
         $plan = WeeklyPlan::create([
             'week_start' => '2026-11-23',

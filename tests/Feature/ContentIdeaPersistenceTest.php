@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentIdeaPriority;
-use App\Enums\ContentIdeaStatus;
-use App\Models\ContentIdea;
-use App\Models\WeeklyPlan;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Domain\Shared\Enums\ContentIdeaStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

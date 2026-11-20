@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentBriefingStatus;
-use App\Enums\ContentIdeaPriority;
-use App\Enums\ContentVersionStatus;
-use App\Models\ContentBriefing;
-use App\Models\WeeklyPlan;
-use App\Services\ContentVersionCreator;
+use App\Domain\Shared\Enums\ContentBriefingStatus;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\ContentVersionCreator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

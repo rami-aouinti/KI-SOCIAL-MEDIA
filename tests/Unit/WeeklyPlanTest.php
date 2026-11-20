@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Enums\WeeklyPlanStatus;
-use App\Models\WeeklyPlan;
+use App\Domain\Shared\Enums\WeeklyPlanStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use PHPUnit\Framework\TestCase;
 
 class WeeklyPlanTest extends TestCase

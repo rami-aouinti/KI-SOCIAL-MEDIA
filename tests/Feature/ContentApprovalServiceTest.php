@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\ContentApprovalDecision;
-use App\Enums\ContentBriefingStatus;
-use App\Enums\ContentIdeaPriority;
-use App\Enums\ContentVersionStatus;
-use App\Enums\WorkAllocationType;
-use App\Models\ContentBriefing;
-use App\Models\ContentVersionApproval;
-use App\Models\WeeklyPlan;
-use App\Services\ContentApprovalService;
-use App\Services\ContentVersionCreator;
+use App\Domain\Shared\Enums\ContentApprovalDecision;
+use App\Domain\Shared\Enums\ContentBriefingStatus;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Domain\Shared\Enums\WorkAllocationType;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersionApproval;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\ContentApprovalService;
+use App\Application\Services\ContentVersionCreator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use LogicException;
@@ -100,7 +100,7 @@ class ContentApprovalServiceTest extends TestCase
     }
 
     /**
-     * @return array{0: \App\Models\ContentVersion, 1: \App\Models\ContentIdea}
+     * @return array{0: \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion, 1: \App\Infrastructure\Persistence\Eloquent\Models\ContentIdea}
      */
     private function createVersion(array $overrides = [], bool $withAllocation = true): array
     {

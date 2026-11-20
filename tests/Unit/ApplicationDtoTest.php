@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\DTOs\ContentIdeaData;
-use App\DTOs\ContentVersionData;
-use App\DTOs\GeneratedBriefingData;
-use App\DTOs\GenerationMetadataData;
-use App\DTOs\InspirationData;
-use App\DTOs\WeeklyPlanData;
+use App\Application\DTO\ContentIdeaData;
+use App\Application\DTO\ContentVersionData;
+use App\Application\DTO\GeneratedBriefingData;
+use App\Application\DTO\GenerationMetadataData;
+use App\Application\DTO\InspirationData;
+use App\Application\DTO\WeeklyPlanData;
 use PHPUnit\Framework\TestCase;
 
 class ApplicationDtoTest extends TestCase
