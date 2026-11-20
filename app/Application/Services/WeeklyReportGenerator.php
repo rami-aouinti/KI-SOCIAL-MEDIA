@@ -30,7 +30,14 @@ class WeeklyReportGenerator
 
         $plan = $weeklyPlan;
 
-        $capacity = $this->capacityPlanner->analyze($plan);
+        $allocations = $plan->contentIdeas
+            ->flatMap(static fn ($idea) => $idea->workAllocations)
+            ->map(static fn ($allocation): array => [
+                'person_key' => $allocation->person_key,
+                'estimated_minutes' => $allocation->estimated_minutes,
+            ])
+            ->all();
+        $capacity = $this->capacityPlanner->analyze($plan->capacity_limits ?? [], $allocations);
         $lines = [
             'KI SOCIAL MEDIA — RAPPORT HEBDOMADAIRE',
             str_repeat('=', 48),

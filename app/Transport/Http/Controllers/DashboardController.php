@@ -22,7 +22,19 @@ class DashboardController extends Controller
             ->latest('week_start')
             ->first();
 
-        $capacity = $plan ? $capacityPlanner->analyze($plan) : null;
+        $capacity = null;
+
+        if ($plan !== null) {
+            $allocations = $plan->contentIdeas
+                ->flatMap(static fn ($idea) => $idea->workAllocations)
+                ->map(static fn ($allocation): array => [
+                    'person_key' => $allocation->person_key,
+                    'estimated_minutes' => $allocation->estimated_minutes,
+                ])
+                ->all();
+
+            $capacity = $capacityPlanner->analyze($plan->capacity_limits ?? [], $allocations);
+        }
 
         return view('welcome', ['plan' => $plan, 'capacity' => $capacity]);
     }

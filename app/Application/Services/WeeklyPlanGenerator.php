@@ -140,9 +140,17 @@ class WeeklyPlanGenerator
 
             $plan->load(['inspirations', 'contentIdeas.workAllocations']);
 
+            $allocations = $plan->contentIdeas
+                ->flatMap(static fn ($idea) => $idea->workAllocations)
+                ->map(static fn ($allocation): array => [
+                    'person_key' => $allocation->person_key,
+                    'estimated_minutes' => $allocation->estimated_minutes,
+                ])
+                ->all();
+
             return [
                 'plan' => $plan,
-                'capacity_report' => $this->capacityPlanner->analyze($plan),
+                'capacity_report' => $this->capacityPlanner->analyze($plan->capacity_limits ?? [], $allocations),
                 'selection_reasons' => $plan->contentIdeas
                     ->map(static fn ($idea): array => [
                         'title' => $idea->title,
