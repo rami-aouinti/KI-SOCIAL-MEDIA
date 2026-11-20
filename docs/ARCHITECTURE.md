@@ -297,7 +297,7 @@ Champs proposés :
 
 Un total par publication ne suffit pas à expliquer la charge. Les allocations permettent de répondre à trois questions : quelle tâche est nécessaire, qui l'effectue et combien de minutes sont prévues ? Le total par personne est calculé à partir de ces lignes et comparé à sa capacité.
 
-Le système ne doit jamais augmenter silencieusement la capacité. En cas de dépassement, il affiche l'écart et propose une alternative justifiée : déplacer une idée, utiliser une réserve, réaffecter une tâche si cela reste réaliste ou réduire le périmètre.
+Le système ne doit jamais augmenter silencieusement la capacité. En cas de dépassement, le MVP affiche l'écart. Le déplacement d'une idée, l'utilisation d'une réserve, la réaffectation d'une tâche ou la réduction du périmètre restent des décisions humaines ; aucune alternative n'est calculée automatiquement.
 
 ### 5.6 Table `content_briefings`
 
