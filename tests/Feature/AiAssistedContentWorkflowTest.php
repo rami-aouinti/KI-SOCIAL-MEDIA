@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Contracts\AiContentGeneratorInterface;
+use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Enums\ContentVersionStatus;
 use App\Services\AiAssistedContentWorkflow;
-use App\Services\MockAiContentGenerator;
+use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
