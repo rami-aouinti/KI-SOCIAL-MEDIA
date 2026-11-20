@@ -91,6 +91,8 @@ class WeeklyReportGenerator
 
                 if (! $latestVersion) {
                     $lines[] = '  Contenu : aucun briefing/version enregistré.';
+                    $lines[] = '  Validation : Aucune validation enregistrée';
+                    $lines[] = '  Transmission : Aucune transmission enregistrée';
                     continue;
                 }
 
