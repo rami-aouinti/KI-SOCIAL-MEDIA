@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\GeneratedBriefingData;
+use App\DTOs\GenerationMetadataData;
 use App\Contracts\AiContentGeneratorInterface;
 use App\Models\ContentIdea;
 use Illuminate\Support\Facades\DB;
@@ -80,16 +82,17 @@ class AiAssistedContentWorkflow
         ])->validate();
 
         foreach ($idea->channels as $channel) {
-            if (! isset($validated['channel_variants'][$channel])) {
+            if (! isset($briefingData->channelVariants[$channel])) {
                 throw ValidationException::withMessages([
                     'channel_variants' => "The generated briefing is missing the {$channel} variant.",
                 ]);
             }
         }
 
+        $briefingData = GeneratedBriefingData::fromValidatedArray($validated);
         $metadata = $this->generationMetadata();
 
-        return DB::transaction(function () use ($idea, $validated, $metadata): array {
+        return DB::transaction(function () use ($idea, $briefingData, $metadata): array {
             if ($idea->briefing()->exists()) {
                 throw ValidationException::withMessages([
                     'briefing' => 'A briefing already exists. Create a new content version instead of overwriting it.',
@@ -97,21 +100,18 @@ class AiAssistedContentWorkflow
             }
 
             $briefing = $idea->briefing()->create([
-                'hook' => $validated['hook'],
-                'body' => $validated['body'],
-                'filming_plan' => $validated['filming_plan'],
-                'on_screen_text' => $validated['on_screen_text'],
-                'cover_idea' => $validated['cover_idea'],
-                'cta_text' => $validated['cta_text'],
-                'appointment_url' => $validated['appointment_url'],
+                'hook' => $briefingData->hook,
+                'body' => $briefingData->body,
+                'filming_plan' => $briefingData->filmingPlan,
+                'on_screen_text' => $briefingData->onScreenText,
+                'cover_idea' => $briefingData->coverIdea,
+                'cta_text' => $briefingData->ctaText,
+                'appointment_url' => $briefingData->appointmentUrl,
                 'status' => 'ready',
             ]);
 
             $version = $this->contentVersionCreator->create($briefing, [
-                'hook' => $validated['hook'],
-                'body' => $validated['body'],
-                'channel_variants' => $validated['channel_variants'],
-                'media_reference' => $validated['media_reference'],
+                ...$briefingData->toArray(),
                 'channels' => $idea->channels,
                 'scheduled_at' => $idea->planned_at->format('Y-m-d'),
                 'generation' => $metadata,
@@ -130,10 +130,10 @@ class AiAssistedContentWorkflow
      */
     private function generationMetadata(): array
     {
-        return [
-            'provider' => 'mock',
-            'simulated' => true,
-            'model' => 'deterministic-fixture-v1',
-        ];
+        return (new GenerationMetadataData(
+            provider: 'mock',
+            simulated: true,
+            model: 'deterministic-fixture-v1',
+        ))->toArray();
     }
 }
