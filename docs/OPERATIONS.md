@@ -14,9 +14,78 @@ docker compose exec laravel.test php artisan social:user:create
 ```
 
 The command prompts for a name, email address and password (minimum 12
-characters). Do not seed a known default account in production. Provision
-additional users through the same command and use a deployment secret manager
-for any automation around account creation.
+characters). Do not seed a known default account in production.
+
+## API authentication and permissions
+
+The versioned JSON API is available under `/api/v1`. It uses opaque bearer
+tokens. Only the SHA-256 hash is stored in the database; the plaintext token
+is printed once by the creation command and cannot be recovered later.
+Tokens expire after a configurable lifetime (1-365 days) and can be revoked.
+
+Create a token for an existing workspace user:
+
+```bash
+docker compose exec laravel.test php artisan social:api-token:create editor@example.com --name="CI integration" --abilities=plans:read,content:read --days=90
+```
+
+Copy the token directly into a secret manager. Never commit it, add it to
+frontend JavaScript, or put it in a URL. Revoke it using its database ID:
+
+```bash
+docker compose exec laravel.test php artisan social:api-token:revoke 12
+```
+
+Available token abilities:
+
+- `plans:read`: list and view weekly plans.
+- `plans:write`: generate and persist a weekly plan.
+- `content:read`: view content ideas and content versions.
+- `content:write`: create a new immutable content version and submit it for review.
+- `content:approve`: approve or reject a version.
+
+Each API request is limited to 60 requests per minute per client IP. Missing,
+invalid and expired tokens return HTTP 401; missing abilities return HTTP 403.
+Validation errors return HTTP 422. The API is currently a single shared
+workspace: all valid tokens address the same workspace data. Per-user
+ownership, organization isolation and role management are not implemented;
+do not issue tokens to untrusted users.
+
+### API endpoints
+
+All endpoints require `Authorization: Bearer <token>`.
+
+| Method | Endpoint | Ability | Purpose |
+|---|---|---|---|
+| GET | `/api/v1/weekly-plans` | `plans:read` | Paginated weekly plans |
+| GET | `/api/v1/weekly-plans/{id}` | `plans:read` | Plan, ideas, allocations and briefings |
+| POST | `/api/v1/weekly-plans` | `plans:write` | Validate and generate a weekly plan |
+| GET | `/api/v1/content-ideas/{id}` | `content:read` | Idea and its briefing/version history |
+| GET | `/api/v1/content-versions/{id}` | `content:read` | Immutable snapshot and review/handoff history |
+| POST | `/api/v1/content-briefings/{id}/versions` | `content:write` | Create the next immutable version |
+| POST | `/api/v1/content-versions/{id}/submit-review` | `content:write` | Submit a draft for review |
+| POST | `/api/v1/content-versions/{id}/approve` | `content:approve` | Approve a ready version |
+| POST | `/api/v1/content-versions/{id}/reject` | `content:approve` | Reject a version with a comment |
+
+Example:
+
+```bash
+curl --fail-with-body \
+  -H "Authorization: Bearer $SOCIAL_MEDIA_API_TOKEN" \
+  -H "Accept: application/json" \
+  http://localhost/api/v1/weekly-plans
+```
+
+Weekly-plan creation accepts the same validated payload as
+`WeeklyPlanGenerator`: week start, capacity limits, at least three inspiration
+references and exactly five ideas (three priorities and two reserves). Content
+version creation requires a hook, body, channel variants, channels and
+scheduled date. Approval uses the authenticated token owner's name as reviewer;
+rejection additionally requires a comment.
+
+The API does not expose a real social-platform publish endpoint. Handoff and
+AI generation remain simulated until their external adapters and credentials
+are configured.
 
 ## Health check
 
