@@ -1,9 +1,9 @@
 <?php
 
-use App\\Models\\WeeklyPlan;
-use App\\Services\\WeeklyReportGenerator;
-use Illuminate\\Support\\Facades\\Route;
-use Illuminate\\Support\\Facades\\Storage;
+use App\Models\WeeklyPlan;
+use App\Services\WeeklyReportGenerator;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     $plan = WeeklyPlan::query()
