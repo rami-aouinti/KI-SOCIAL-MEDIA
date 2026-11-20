@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Enums\\ContentApprovalDecision;
-use App\\Enums\\ContentVersionStatus;
-use App\\Models\\ContentVersion;
-use App\\Models\\ContentVersionApproval;
-use Illuminate\\Support\\Carbon;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Validation\\ValidationException;
+use App\Enums\ContentApprovalDecision;
+use App\Enums\ContentVersionStatus;
+use App\Models\ContentVersion;
+use App\Models\ContentVersionApproval;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 
 class ContentApprovalService
