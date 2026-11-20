@@ -194,7 +194,7 @@ storage/
 Principes :
 
 - Contrôleurs minces : HTTP, validation d'entrée et délégation aux services.
-- DTO pour transporter des données structurées entre les couches lorsque cela clarifie le contrat.
+- DTO immuables et typés (`readonly`) pour transporter les données validées entre les couches : planning, idées, inspirations, affectations, briefings, versions et provenance IA. La validation Laravel reste à la frontière ; les DTO représentent ensuite les données fiables utilisées par la persistance.
 - Services focalisés sur une responsabilité métier.
 - Enums pour les états et types stables.
 - Eloquent pour l'accès aux données ; pas de repository générique ajouté sans besoin concret.
@@ -744,7 +744,7 @@ storage/
 Grundsätze:
 
 - Schlanke Controller: HTTP-Annahme, Eingabevalidierung und Delegation an Services.
-- DTOs transportieren strukturierte Daten zwischen Schichten, wenn dadurch ein klarer Vertrag entsteht.
+- Unveränderliche, typisierte DTOs (`readonly`) transportieren validierte Daten zwischen den Schichten: Wochenplan, Ideen, Inspirationen, Arbeitszuweisungen, Briefings, Versionen und KI-Provenienz. Die Laravel-Validierung bleibt an der Eingabegrenze; anschließend repräsentieren DTOs die verlässlichen Daten für die Persistenz.
 - Services haben jeweils eine klar abgegrenzte fachliche Verantwortung.
 - Enums repräsentieren stabile Zustände und Typen.
 - Eloquent wird für den Datenzugriff verwendet; kein generisches Repository ohne konkreten Bedarf.
