@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\DTOs\GeneratedBriefingData;
 use App\DTOs\GenerationMetadataData;
-use App\Contracts\AiContentGeneratorInterface;
+use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Models\ContentIdea;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;

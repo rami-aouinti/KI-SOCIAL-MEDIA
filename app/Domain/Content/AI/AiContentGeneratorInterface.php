@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Contracts;
+namespace App\Domain\Content\AI;
 
 /**
  * Provider-neutral contract for structured AI content generation.

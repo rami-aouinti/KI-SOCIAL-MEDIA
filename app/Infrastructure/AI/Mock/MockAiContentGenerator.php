@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Infrastructure\AI\Mock;
 
-use App\Contracts\AiContentGeneratorInterface;
+use App\Domain\Content\AI\AiContentGeneratorInterface;
 use DateTimeImmutable;
 
 /**

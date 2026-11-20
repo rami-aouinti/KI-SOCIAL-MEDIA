@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Contracts\AiContentGeneratorInterface;
+use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Events\ContentApproved;
 use App\Events\ContentHandedOff;
 use App\Events\ContentRejected;
@@ -16,7 +16,7 @@ use App\Repositories\Contracts\ContentVersionRepositoryInterface;
 use App\Repositories\Eloquent\EloquentContentApprovalRepository;
 use App\Repositories\Eloquent\EloquentContentHandoffRepository;
 use App\Repositories\Eloquent\EloquentContentVersionRepository;
-use App\Services\MockAiContentGenerator;
+use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
