@@ -85,11 +85,13 @@ class AiAssistedContentWorkflow
         $briefingData = GeneratedBriefingData::fromValidatedArray($validated);
 
         foreach ($idea->channels as $channel) {
-            if (! isset($briefingData->channelVariants[$channel])) {
-                throw ValidationException::withMessages([
-                    'channel_variants' => "The generated briefing is missing the {$channel} variant.",
-                ]);
+            if (isset($briefingData->channelVariants[$channel])) {
+                continue;
             }
+
+            throw ValidationException::withMessages([
+                'channel_variants' => "The generated briefing is missing the {$channel} variant.",
+            ]);
         }
 
         $metadata = $this->generationMetadata();

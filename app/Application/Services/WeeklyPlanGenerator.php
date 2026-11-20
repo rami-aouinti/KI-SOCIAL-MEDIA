@@ -77,19 +77,18 @@ class WeeklyPlanGenerator
 
             $ideas = $input['ideas'] ?? [];
 
-            if (! is_array($ideas)) {
+            if (!is_array($ideas)) {
                 return;
             }
 
+            $priorityTypes = array_column(array_filter($ideas, 'is_array'), 'priority_type');
             $priorities = count(array_filter(
-                $ideas,
-                static fn (mixed $idea): bool => is_array($idea)
-                    && ($idea['priority_type'] ?? null) === 'priority'
+                $priorityTypes,
+                static fn (mixed $priorityType): bool => $priorityType === 'priority',
             ));
             $reserves = count(array_filter(
-                $ideas,
-                static fn (mixed $idea): bool => is_array($idea)
-                    && ($idea['priority_type'] ?? null) === 'reserve'
+                $priorityTypes,
+                static fn (mixed $priorityType): bool => $priorityType === 'reserve',
             ));
 
             if ($priorities !== 3) {
