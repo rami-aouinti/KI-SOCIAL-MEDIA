@@ -87,6 +87,85 @@ The API does not expose a real social-platform publish endpoint. Handoff and
 AI generation remain simulated until their external adapters and credentials
 are configured.
 
+## n8n automation
+
+n8n runs as a separate Docker Compose service and uses its own persistent
+`n8n-data` volume. It is intentionally bound to `127.0.0.1` on the host;
+do not expose its editor directly to the public internet. On first start, create
+the n8n owner account in the editor. Keep the encryption key stable: losing it
+can make saved n8n credentials unreadable.
+
+### First-time setup
+
+Generate secrets locally and add them only to your untracked `.env` file:
+
+```bash
+openssl rand -hex 32
+```
+
+Use one generated value for `N8N_ENCRYPTION_KEY` and a different generated
+value for `N8N_WEBHOOK_SECRET`. Then configure:
+
+```dotenv
+N8N_ENABLED=true
+N8N_ENCRYPTION_KEY=<generated-encryption-key>
+N8N_WEBHOOK_SECRET=<different-generated-webhook-secret>
+N8N_WEBHOOK_URL=http://n8n:5678/webhook/social-media-events
+N8N_PORT=5678
+```
+
+Start the service:
+
+```bash
+docker compose up -d n8n
+docker compose logs -f n8n
+```
+
+Open `http://localhost:5678`, create the owner account, then import
+`workflows/n8n/social-media-event-router.json`. In the imported Webhook node,
+set **Authentication** to **Header Auth** and create a credential with header
+name `X-Automation-Secret` and value equal to `N8N_WEBHOOK_SECRET`. Activate
+the workflow. The workflow path must remain `social-media-events`.
+
+The Laravel container reaches n8n through Docker DNS at `http://n8n:5678`.
+The browser reaches the editor at `http://localhost:5678`; do not use the
+browser URL as the Laravel-to-n8n webhook address.
+
+### Event delivery
+
+Laravel sends automation events asynchronously through the existing database
+queue. The payload envelope contains:
+
+- `event_id`: stable UUID reused across delivery retries.
+- `event_type`: a namespaced event name.
+- `occurred_at`: ISO-8601 timestamp.
+- `data`: event-specific, non-secret identifiers and metadata.
+
+The request includes `X-Automation-Secret` and `X-Automation-Event-Id`
+headers. Configure n8n's Header Auth credential; never put the shared secret
+inside workflow code or node expressions. The queue job retries transient
+failures three times with bounded backoff and logs final failures. Consumers
+should deduplicate by `event_id`, because HTTP delivery is at-least-once.
+
+Test the connection after activating the workflow:
+
+```bash
+docker compose exec laravel.test php artisan social:n8n:test
+docker compose logs -f queue-worker
+```
+
+When n8n is disabled (the default), the integration client makes no HTTP
+requests. Enabling it requires a valid webhook URL and a secret of at least
+32 characters. Keep the webhook endpoint on the private Compose network unless
+there is a deliberate, authenticated reverse-proxy design.
+
+The included event-router workflow validates the event envelope and
+acknowledges delivery. It is a safe starting point, not an AI generator or a
+social publisher. Add downstream nodes only after configuring the relevant
+provider credentials, approval gates, rate limits and idempotency handling.
+n8n execution history may contain business metadata; configure retention and
+access controls before production use.
+
 ## Health check
 
 Run dependency checks from the application root:
