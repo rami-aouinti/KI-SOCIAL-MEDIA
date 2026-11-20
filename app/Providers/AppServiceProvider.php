@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\AiContentGeneratorInterface;
+use App\Events\ContentApproved;
+use App\Events\ContentHandedOff;
+use App\Events\ContentRejected;
+use App\Listeners\QueueWeeklyReportRefresh;
+use Illuminate\Support\Facades\Event;
 use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
 use App\Repositories\Contracts\ContentHandoffRepositoryInterface;
 use App\Repositories\Contracts\ContentVersionRepositoryInterface;
@@ -41,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        Event::listen(
+            [ContentApproved::class, ContentRejected::class, ContentHandedOff::class],
+            QueueWeeklyReportRefresh::class,
+        );
     }
 }
