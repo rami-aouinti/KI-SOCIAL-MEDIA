@@ -21,7 +21,7 @@ class WeeklyPlanGenerator
      *
      * @param  array<string, mixed>  $input
      * @return array{
-     *     plan: object,
+     *     plan: mixed,
      *     capacity_report: array<string, mixed>,
      *     selection_reasons: array<int, array{title: string, priority_type: string, reason: string}>
      * }

@@ -84,7 +84,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $plan = app(AiAssistedContentWorkflow::class)->generateWeeklyPlan($this->planInput())['plan'];
         $idea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
 
-        $result = app(AiAssistedContentWorkflow::class)->generateBriefing($idea);
+        $result = app(AiAssistedContentWorkflow::class)->generateBriefing((int) $idea->getKey());
 
         $this->assertDatabaseCount('content_briefings', 1);
         $this->assertDatabaseCount('content_versions', 1);
@@ -100,7 +100,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $this->assertSame('mock', $result['version']->snapshot['generation']['provider']);
         $this->assertTrue($result['version']->snapshot['generation']['simulated']);
         $this->assertSame(ContentVersionStatus::DRAFT, $result['version']->status);
-        $this->assertStringStartsWith('https://example.com/', $result['briefing']->appointment_url);
+        $this->assertStringStartsWith('https://example.com/', $briefing->appointment_url);
     }
 
     public function test_generated_briefing_cannot_be_silently_overwritten(): void
