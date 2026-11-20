@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Queue\Jobs;
 
-use App\Models\ContentVersion;
-use App\Services\WeeklyReportGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Application\Services\WeeklyReportGenerator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
