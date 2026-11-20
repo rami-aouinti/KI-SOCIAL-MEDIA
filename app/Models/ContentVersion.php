@@ -36,6 +36,27 @@ class ContentVersion extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::updating(static function (ContentVersion $version): void {
+            $immutableFields = [
+                'content_briefing_id',
+                'version_number',
+                'snapshot',
+                'media_reference',
+                'channels',
+                'scheduled_at',
+                'content_hash',
+            ];
+
+            if ($version->isDirty($immutableFields)) {
+                throw new LogicException(
+                    'A content version snapshot is immutable. Create a new version instead.'
+                );
+            }
+        });
+    }
+
     public function briefing(): BelongsTo
     {
         return $this->belongsTo(ContentBriefing::class, 'content_briefing_id');
