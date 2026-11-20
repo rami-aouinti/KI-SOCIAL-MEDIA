@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ContentApprovalDecision;
+use App\Events\ContentHandedOff;
 use App\Enums\ContentVersionStatus;
 use App\Models\ContentHandoffRecord;
 use App\Models\ContentVersion;
@@ -85,6 +86,7 @@ class SimulatedContentHandoffService
 
             $locked->status = ContentVersionStatus::HANDED_OFF;
             $locked->save();
+            ContentHandedOff::dispatch((int) $locked->id);
 
             return $record;
         });
