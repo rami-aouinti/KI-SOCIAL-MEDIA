@@ -83,7 +83,7 @@ class ContentApprovalServiceTest extends TestCase
     public function test_approval_requires_a_work_allocation_and_responsible_person(): void
     {
         [$version, $idea] = $this->createVersion(withAllocation: false);
-        $idea->update(['responsible_person' => null]);
+        $idea->update(['responsible_person' => '']);
         $service = app(ContentApprovalService::class);
         $review = $service->submitForReview($version);
 
