@@ -19,7 +19,7 @@ class WeeklyPlanGenerator
     /**
      * Persist a structured plan after validating user input and generated ideas.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array{
      *     plan: mixed,
      *     capacity_report: array<string, mixed>,

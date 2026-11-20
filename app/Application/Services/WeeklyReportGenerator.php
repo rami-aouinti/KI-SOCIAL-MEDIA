@@ -23,8 +23,6 @@ class WeeklyReportGenerator
     {
         $plan = $this->reports->load($weeklyPlan);
 
-
-
         $allocations = $plan->contentIdeas
             ->flatMap(static fn ($idea) => $idea->workAllocations)
             ->map(static fn ($allocation): array => [

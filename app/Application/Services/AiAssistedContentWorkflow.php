@@ -25,7 +25,7 @@ class AiAssistedContentWorkflow
     ) {}
 
     /**
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
     public function generateWeeklyPlan(array $input): array
