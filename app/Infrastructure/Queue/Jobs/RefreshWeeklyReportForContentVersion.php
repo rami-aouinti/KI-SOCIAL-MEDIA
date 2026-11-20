@@ -12,6 +12,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 final class RefreshWeeklyReportForContentVersion implements ShouldBeUnique, ShouldQueue
 {
@@ -50,5 +52,15 @@ final class RefreshWeeklyReportForContentVersion implements ShouldBeUnique, Shou
         if ($weeklyPlan !== null) {
             $generator->store((int) $weeklyPlan->getKey());
         }
+    }
+
+    public function failed(Throwable $exception): void
+    {
+        Log::error('Weekly report refresh job failed permanently', [
+            'content_version_id' => $this->contentVersionId,
+            'attempts' => $this->attempts(),
+            'exception' => $exception::class,
+            'message' => $exception->getMessage(),
+        ]);
     }
 }
