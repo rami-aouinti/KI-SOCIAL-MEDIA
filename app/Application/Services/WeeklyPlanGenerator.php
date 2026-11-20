@@ -104,26 +104,31 @@ class WeeklyPlanGenerator
 
         $validated = $validator->validate();
         $planData = WeeklyPlanData::fromValidatedArray($validated);
-        $plan = $this->plans->create($planData);
+        $allocations = [];
+        $selectionReasons = [];
 
-        $allocations = $plan->contentIdeas
-            ->flatMap(static fn ($idea) => $idea->workAllocations)
-            ->map(static fn ($allocation): array => [
-                'person_key' => $allocation->person_key,
-                'estimated_minutes' => $allocation->estimated_minutes,
-            ])
-            ->all();
+        foreach ($planData->ideas as $idea) {
+            $selectionReasons[] = [
+                'title' => $idea->title,
+                'priority_type' => $idea->priorityType,
+                'reason' => $idea->selectionReason,
+            ];
+
+            foreach ($idea->allocations as $allocation) {
+                $allocations[] = [
+                    'person_key' => $allocation->personKey,
+                    'estimated_minutes' => $allocation->estimatedMinutes,
+                ];
+            }
+        }
+
+        $capacityReport = $this->capacityPlanner->analyze($planData->capacityLimits, $allocations);
+        $plan = $this->plans->create($planData);
 
         return [
             'plan' => $plan,
-            'capacity_report' => $this->capacityPlanner->analyze($planData->capacityLimits, $allocations),
-            'selection_reasons' => $plan->contentIdeas
-                ->map(static fn ($idea): array => [
-                    'title' => $idea->title,
-                    'priority_type' => $idea->priority_type->value,
-                    'reason' => $idea->selection_reason,
-                ])
-                ->all(),
+            'capacity_report' => $capacityReport,
+            'selection_reasons' => $selectionReasons,
         ];
     }
 }
