@@ -74,6 +74,32 @@ class ContentVersionPersistenceTest extends TestCase
         }
     }
 
+
+    public function test_snapshot_fields_cannot_be_changed_after_creation(): void
+    {
+        $briefing = $this->createBriefing();
+        $version = app(ContentVersionCreator::class)->create($briefing, $this->versionData());
+
+        $version->snapshot = ['hook' => 'Changed after approval'];
+        $this->expectException(\\LogicException::class);
+        $this->expectExceptionMessage('Create a new version instead.');
+
+        $version->save();
+    }
+
+    public function test_hash_changes_when_schedule_or_media_reference_changes(): void
+    {
+        $briefing = $this->createBriefing();
+        $creator = app(ContentVersionCreator::class);
+        $first = $creator->create($briefing, $this->versionData());
+
+        $changed = $this->versionData();
+        $changed['scheduled_at'] = '2026-11-26';
+        $second = $creator->create($briefing, $changed);
+
+        $this->assertNotSame($first->content_hash, $second->content_hash);
+    }
+
     private function createBriefing(): ContentBriefing
     {
         $plan = WeeklyPlan::create([
