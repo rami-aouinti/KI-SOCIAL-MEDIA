@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Database\\Seeders;
+namespace Database\Seeders;
 
-use App\\Models\\ContentIdea;
-use App\\Models\\WeeklyPlan;
-use App\\Services\\ContentApprovalService;
-use App\\Services\\ContentVersionCreator;
-use App\\Services\\SimulatedContentHandoffService;
-use Illuminate\\Database\\Seeder;
+use App\Models\ContentIdea;
+use App\Models\WeeklyPlan;
+use App\Services\ContentApprovalService;
+use App\Services\ContentVersionCreator;
+use App\Services\SimulatedContentHandoffService;
+use Illuminate\Database\Seeder;
 
 class DemoContentSeeder extends Seeder
 {
