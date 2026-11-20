@@ -71,7 +71,7 @@ final class SocialQueueStatus extends Command
     }
 
     /**
-     * @param array<string, mixed> $result
+     * @param array<string, mixed>  $result
      */
     private function display(array $result, int $exitCode): int
     {
