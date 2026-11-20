@@ -66,7 +66,10 @@ class ContentApprovalServiceTest extends TestCase
 
         $rejected = $service->reject($review, 'Person B', 'Please revise the wording.');
 
-        $this->assertSame(ContentVersionStatus::DRAFT, $rejected->status);
+        $this->assertSame(ContentVersionStatus::REJECTED, $rejected->status);
+
+        $this->expectException(LogicException::class);
+        $service->submitForReview($rejected);
         $this->assertSame(ContentApprovalDecision::REJECTED, ContentVersionApproval::query()->sole()->decision);
     }
 
