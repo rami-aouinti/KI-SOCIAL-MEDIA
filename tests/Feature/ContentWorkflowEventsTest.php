@@ -8,7 +8,6 @@ use App\Events\ContentApproved;
 use App\Events\ContentHandedOff;
 use App\Events\ContentRejected;
 use App\Jobs\RefreshWeeklyReportForContentVersion;
-use App\Listeners\QueueWeeklyReportRefresh;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -36,7 +35,7 @@ class ContentWorkflowEventsTest extends TestCase
     {
         Queue::fake();
 
-        app(QueueWeeklyReportRefresh::class)->handle($event);
+        event($event);
 
         Queue::assertPushed(
             RefreshWeeklyReportForContentVersion::class,
