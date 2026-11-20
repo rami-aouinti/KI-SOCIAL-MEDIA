@@ -88,7 +88,7 @@ Use **Laravel as a single PHP monolith**. Run the application and its developmen
 - Composer inside the PHP container
 - Node.js/npm inside the Sail environment only if frontend assets require it
 - Eloquent ORM
-- SQLite (file-based database; no database container needed)
+- MySQL 8.4 (dedicated database container managed by Docker Compose)
 - Blade for server-rendered pages
 - Laravel routing and Form Request validation
 - Laravel service container for dependency injection
@@ -270,7 +270,7 @@ cp -a .bootstrap/. .
 rm -rf .bootstrap
 ```
 
-Then install Sail and generate the Docker Compose configuration. Select no extra services (we use SQLite):
+Then install Sail and generate the Docker Compose configuration. Select `mysql` as the database service:
 
 ```bash
 docker run --rm -u "$(id -u):$(id -g)" \
@@ -284,20 +284,19 @@ docker run --rm -it -u "$(id -u):$(id -g)" \
   php artisan sail:install
 ```
 
-After Sail generates its Compose file, use the project-local Sail executable:
+After Sail generates its Compose file, ensure its PHP runtime path and image use PHP 8.4 (`vendor/laravel/sail/runtimes/8.4` and `sail-8.4/app`). Keep the MySQL service and the `depends_on: mysql` dependency. Then use the project-local Sail executable:
 
 ```bash
 cp .env.example .env
-mkdir -p database
-touch database/database.sqlite
-# Set DB_CONNECTION=sqlite in .env (remove/comment DB_HOST if present)
+# Configure DB_CONNECTION=mysql, DB_HOST=mysql, DB_PORT=3306,
+# DB_DATABASE=laravel, DB_USERNAME=sail and DB_PASSWORD=password in .env
 ./vendor/bin/sail up -d
 ./vendor/bin/sail artisan key:generate
 ./vendor/bin/sail artisan migrate
 ./vendor/bin/sail artisan test
 ```
 
-If a bootstrap command fails, stop and fix that step before continuing; do not spend the rest of the five-hour budget debugging optional infrastructure. Check the generated Compose file and `.env` before the first startup. Never commit `.env`, credentials, or the local SQLite database.
+If a bootstrap command fails, stop and fix that step before continuing; do not spend the rest of the five-hour budget debugging optional infrastructure. Check the generated Compose file and `.env` before the first startup. The application container must use PHP 8.4 and the database container must use MySQL 8.4. Never commit `.env`, credentials, or the local SQLite database.
 
 ## 11. Demo scenario
 
