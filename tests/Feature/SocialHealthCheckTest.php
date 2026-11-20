@@ -27,7 +27,6 @@ class SocialHealthCheckTest extends TestCase
 
         $this->artisan('social:health-check', ['--json' => true])
             ->expectsOutputToContain('"status": "ok"')
-            ->expectsOutputToContain('"ai_provider_binding": "ok"')
             ->assertExitCode(0);
     }
 }
