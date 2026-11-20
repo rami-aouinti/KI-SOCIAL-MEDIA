@@ -16,6 +16,5 @@ final readonly class ContentApprovalRecord
         public string $contentHash,
         public ?string $comment,
         public ?string $reviewedAt,
-    ) {
-    }
+    ) {}
 }

@@ -6,9 +6,7 @@ namespace App\Domain\Events;
 
 final readonly class ContentApprovedEvent implements ContentWorkflowEvent
 {
-    public function __construct(private int $versionId)
-    {
-    }
+    public function __construct(private int $versionId) {}
 
     public function contentVersionId(): int
     {

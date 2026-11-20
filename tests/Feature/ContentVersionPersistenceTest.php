@@ -12,6 +12,7 @@ use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ContentVersionPersistenceTest extends TestCase
@@ -66,7 +67,7 @@ class ContentVersionPersistenceTest extends TestCase
         $data = $this->versionData();
         unset($data['channel_variants']);
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         try {
             app(ContentVersionCreator::class)->create((int) $briefing->getKey(), $data);

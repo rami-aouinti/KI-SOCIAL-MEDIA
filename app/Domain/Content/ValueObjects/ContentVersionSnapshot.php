@@ -15,7 +15,7 @@ use JsonException;
 final readonly class ContentVersionSnapshot
 {
     /**
-     * @param array<string, mixed> $approvalPayload
+     * @param  array<string, mixed>  $approvalPayload
      */
     public function __construct(
         private array $approvalPayload,
@@ -26,7 +26,7 @@ final readonly class ContentVersionSnapshot
     }
 
     /**
-     * @param array<string, mixed> $approvalPayload
+     * @param  array<string, mixed>  $approvalPayload
      */
     public static function fromApprovalPayload(array $approvalPayload): self
     {

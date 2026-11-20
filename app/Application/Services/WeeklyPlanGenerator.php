@@ -14,13 +14,12 @@ class WeeklyPlanGenerator
 {
     public function __construct(
         private readonly CapacityPlanner $capacityPlanner,
-    ) {
-    }
+    ) {}
 
     /**
      * Persist a structured plan after validating both user input and generated ideas.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array{
      *     plan: WeeklyPlan,
      *     capacity_report: array<string, mixed>,

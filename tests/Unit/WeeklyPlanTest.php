@@ -12,7 +12,7 @@ class WeeklyPlanTest extends TestCase
 {
     public function test_weekly_plan_has_correct_default_status(): void
     {
-        $plan = new WeeklyPlan();
+        $plan = new WeeklyPlan;
 
         $this->assertSame(
             WeeklyPlanStatus::DRAFT,

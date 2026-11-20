@@ -10,8 +10,7 @@ final readonly class WorkAllocationData
         public string $personKey,
         public string $workType,
         public int $estimatedMinutes,
-    ) {
-    }
+    ) {}
 
     /** @param array{person_key: string, work_type: string, estimated_minutes: int} $data */
     public static function fromArray(array $data): self

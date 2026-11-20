@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Application\Services\WeeklyReportGenerator;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
 use App\Domain\Shared\Enums\WorkAllocationType;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-use App\Application\Services\WeeklyReportGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;

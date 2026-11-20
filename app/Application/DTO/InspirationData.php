@@ -12,8 +12,7 @@ final readonly class InspirationData
         public string $sourceId,
         public string $description,
         public ?array $metrics = null,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self

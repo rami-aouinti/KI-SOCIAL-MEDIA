@@ -7,7 +7,9 @@ namespace App\Application\Services;
 use App\Application\DTO\GeneratedBriefingData;
 use App\Application\DTO\GenerationMetadataData;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -18,14 +20,13 @@ class AiAssistedContentWorkflow
         private readonly AiContentGeneratorInterface $generator,
         private readonly WeeklyPlanGenerator $weeklyPlanGenerator,
         private readonly ContentVersionCreator $contentVersionCreator,
-    ) {
-    }
+    ) {}
 
     /**
      * Generate five structured ideas, then pass them through the normal
      * validation, persistence and capacity-planning workflow.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
     public function generateWeeklyPlan(array $input): array
@@ -48,7 +49,7 @@ class AiAssistedContentWorkflow
      * Generate and persist a complete briefing plus its first immutable
      * content version. Approval remains a separate human action.
      *
-     * @return array{briefing: \App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing, version: \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion, generation: array<string, mixed>}
+     * @return array{briefing: ContentBriefing, version: ContentVersion, generation: array<string, mixed>}
      */
     public function generateBriefing(ContentIdea $idea): array
     {

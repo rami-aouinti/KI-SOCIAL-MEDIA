@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Application\Services\AiAssistedContentWorkflow;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Shared\Enums\ContentVersionStatus;
-use App\Application\Services\AiAssistedContentWorkflow;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -57,7 +57,8 @@ class AiAssistedContentWorkflowTest extends TestCase
 
     public function test_invalid_ai_plan_output_is_rejected_before_anything_is_persisted(): void
     {
-        $this->app->instance(AiContentGeneratorInterface::class, new class implements AiContentGeneratorInterface {
+        $this->app->instance(AiContentGeneratorInterface::class, new class implements AiContentGeneratorInterface
+        {
             public function generateWeeklyPlan(array $context): array
             {
                 return ['ideas' => []];

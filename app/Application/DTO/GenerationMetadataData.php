@@ -10,8 +10,7 @@ final readonly class GenerationMetadataData
         public string $provider,
         public bool $simulated,
         public ?string $model,
-    ) {
-    }
+    ) {}
 
     /** @return array{provider: string, simulated: bool, model: string|null} */
     public function toArray(): array

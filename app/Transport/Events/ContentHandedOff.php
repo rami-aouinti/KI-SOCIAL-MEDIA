@@ -11,9 +11,8 @@ use Illuminate\Foundation\Events\Dispatchable;
 final readonly class ContentHandedOff implements ContentWorkflowEvent, ShouldDispatchAfterCommit
 {
     use Dispatchable;
-    public function __construct(public int $versionId)
-    {
-    }
+
+    public function __construct(public int $versionId) {}
 
     public function contentVersionId(): int
     {

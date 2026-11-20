@@ -7,10 +7,10 @@ namespace App\Application\DTO;
 final readonly class WeeklyPlanData
 {
     /**
-     * @param array<string, int> $capacityLimits
-     * @param list<InspirationData> $inspirations
-     * @param list<ContentIdeaData> $ideas
-     * @param array<string, mixed> $inputData
+     * @param  array<string, int>  $capacityLimits
+     * @param  list<InspirationData>  $inspirations
+     * @param  list<ContentIdeaData>  $ideas
+     * @param  array<string, mixed>  $inputData
      */
     public function __construct(
         public string $weekStart,
@@ -19,8 +19,7 @@ final readonly class WeeklyPlanData
         public array $inspirations,
         public array $ideas,
         public array $inputData,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $data */
     public static function fromValidatedArray(array $data): self

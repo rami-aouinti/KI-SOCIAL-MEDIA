@@ -15,6 +15,5 @@ final readonly class ContentHandoffRecord
         public array $payload,
         public string $status,
         public ?string $handedOffAt,
-    ) {
-    }
+    ) {}
 }

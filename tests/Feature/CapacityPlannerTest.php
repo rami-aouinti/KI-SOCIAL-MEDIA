@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Application\Services\CapacityPlanner;
 use App\Domain\Shared\Enums\WorkAllocationType;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-use App\Application\Services\CapacityPlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;

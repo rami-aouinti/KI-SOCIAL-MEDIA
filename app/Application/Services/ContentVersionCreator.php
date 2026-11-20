@@ -16,11 +16,10 @@ final class ContentVersionCreator
     public function __construct(
         private readonly ContentVersionRepositoryInterface $versions,
         private readonly TransactionManagerInterface $transactions,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function create(int $briefingId, array $data): ContentVersionRecord
     {

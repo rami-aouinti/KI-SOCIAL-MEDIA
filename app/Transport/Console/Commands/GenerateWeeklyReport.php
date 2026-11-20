@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Transport\Console\Commands;
 
-use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use App\Application\Services\WeeklyReportGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Console\Command;
 
 class GenerateWeeklyReport extends Command

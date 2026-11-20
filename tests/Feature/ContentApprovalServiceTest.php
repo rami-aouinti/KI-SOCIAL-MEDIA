@@ -6,11 +6,13 @@ namespace Tests\Feature;
 
 use App\Application\Services\ContentApprovalService;
 use App\Application\Services\ContentVersionCreator;
+use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Domain\Shared\Enums\ContentBriefingStatus;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Domain\Shared\Enums\WorkAllocationType;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersionApproval;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
@@ -98,7 +100,7 @@ class ContentApprovalServiceTest extends TestCase
         }
     }
 
-    /** @return array{0: \App\Domain\Content\Records\ContentVersionRecord, 1: \App\Infrastructure\Persistence\Eloquent\Models\ContentIdea} */
+    /** @return array{0: ContentVersionRecord, 1: ContentIdea} */
     private function createVersion(array $overrides = [], bool $withAllocation = true): array
     {
         $plan = WeeklyPlan::create([

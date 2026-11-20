@@ -9,8 +9,8 @@ use App\Domain\Shared\Enums\ContentVersionStatus;
 final readonly class ContentVersionRecord
 {
     /**
-     * @param array<string, mixed> $snapshot
-     * @param list<string> $channels
+     * @param  array<string, mixed>  $snapshot
+     * @param  list<string>  $channels
      */
     public function __construct(
         public int $id,
@@ -24,6 +24,5 @@ final readonly class ContentVersionRecord
         public ContentVersionStatus $status,
         public ?string $responsiblePerson = null,
         public int $workAllocationCount = 0,
-    ) {
-    }
+    ) {}
 }

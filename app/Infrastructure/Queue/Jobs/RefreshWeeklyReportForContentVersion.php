@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Queue\Jobs;
 
-use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Application\Services\WeeklyReportGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -21,9 +21,7 @@ final class RefreshWeeklyReportForContentVersion implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public readonly int $contentVersionId)
-    {
-    }
+    public function __construct(public readonly int $contentVersionId) {}
 
     public function handle(WeeklyReportGenerator $generator): void
     {

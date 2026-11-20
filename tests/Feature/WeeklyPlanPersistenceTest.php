@@ -6,8 +6,8 @@ namespace Tests\Feature;
 
 use App\Domain\Shared\Enums\WeeklyPlanStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class WeeklyPlanPersistenceTest extends TestCase

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Events\ContentApprovedEvent;
 use App\Domain\Events\ContentRejectedEvent;
 use App\Domain\Events\WorkflowEventPublisherInterface;
@@ -23,8 +23,7 @@ final class ContentApprovalService
         private readonly ContentApprovalRepositoryInterface $approvals,
         private readonly TransactionManagerInterface $transactions,
         private readonly WorkflowEventPublisherInterface $events,
-    ) {
-    }
+    ) {}
 
     public function submitForReview(int $versionId): ContentVersionRecord
     {

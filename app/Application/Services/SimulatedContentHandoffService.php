@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Domain\Content\Records\ContentHandoffRecord;
 use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Records\ContentHandoffRecord;
 use App\Domain\Events\ContentHandedOffEvent;
 use App\Domain\Events\WorkflowEventPublisherInterface;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;
@@ -24,8 +24,7 @@ final class SimulatedContentHandoffService
         private readonly ContentHandoffRepositoryInterface $handoffs,
         private readonly TransactionManagerInterface $transactions,
         private readonly WorkflowEventPublisherInterface $events,
-    ) {
-    }
+    ) {}
 
     public function handoff(int $versionId): ContentHandoffRecord
     {

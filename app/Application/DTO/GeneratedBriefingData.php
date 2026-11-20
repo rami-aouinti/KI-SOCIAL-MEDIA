@@ -17,8 +17,7 @@ final readonly class GeneratedBriefingData
         public string $appointmentUrl,
         public array $channelVariants,
         public string $mediaReference,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $data */
     public static function fromValidatedArray(array $data): self

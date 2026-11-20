@@ -15,8 +15,7 @@ final readonly class ContentVersionData
         public array $channels,
         public string $scheduledAt,
         public ?array $generation = null,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $data */
     public static function fromValidatedArray(array $data): self

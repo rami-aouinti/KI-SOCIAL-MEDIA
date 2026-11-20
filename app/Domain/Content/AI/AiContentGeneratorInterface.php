@@ -13,13 +13,13 @@ namespace App\Domain\Content\AI;
 interface AiContentGeneratorInterface
 {
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array{ideas: array<int, array<string, mixed>>}
      */
     public function generateWeeklyPlan(array $context): array;
 
     /**
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
     public function generateBriefing(array $context): array;

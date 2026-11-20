@@ -8,6 +8,7 @@ use App\Domain\Shared\Enums\WorkAllocationType;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use App\Infrastructure\Persistence\Eloquent\Models\WorkAllocation;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -63,7 +64,7 @@ class WorkAllocationPersistenceTest extends TestCase
 
         $idea->workAllocations()->create($attributes);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $idea->workAllocations()->create($attributes);
     }

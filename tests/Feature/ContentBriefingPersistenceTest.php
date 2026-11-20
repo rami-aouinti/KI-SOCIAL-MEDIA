@@ -6,8 +6,9 @@ namespace Tests\Feature;
 
 use App\Domain\Shared\Enums\ContentBriefingStatus;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,7 +47,7 @@ class ContentBriefingPersistenceTest extends TestCase
         $idea = $this->createPriorityIdea();
         $idea->briefing()->create($this->briefingData());
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $idea->briefing()->create($this->briefingData());
     }
@@ -64,7 +65,7 @@ class ContentBriefingPersistenceTest extends TestCase
         ]);
     }
 
-    private function createPriorityIdea(): \App\Infrastructure\Persistence\Eloquent\Models\ContentIdea
+    private function createPriorityIdea(): ContentIdea
     {
         $plan = WeeklyPlan::create([
             'week_start' => '2026-11-23',

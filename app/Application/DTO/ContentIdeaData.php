@@ -18,8 +18,7 @@ final readonly class ContentIdeaData
         public string $responsiblePerson,
         public string $plannedAt,
         public array $allocations,
-    ) {
-    }
+    ) {}
 
     /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self

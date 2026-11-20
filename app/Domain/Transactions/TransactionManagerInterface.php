@@ -8,7 +8,8 @@ interface TransactionManagerInterface
 {
     /**
      * @template TResult
-     * @param callable(): TResult $operation
+     *
+     * @param  callable(): TResult  $operation
      * @return TResult
      */
     public function run(callable $operation): mixed;

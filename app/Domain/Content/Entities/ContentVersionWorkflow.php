@@ -16,8 +16,7 @@ final readonly class ContentVersionWorkflow
 {
     public function __construct(
         private ContentVersionStatus $status,
-    ) {
-    }
+    ) {}
 
     public static function fromStatus(ContentVersionStatus $status): self
     {

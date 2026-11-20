@@ -6,7 +6,5 @@ namespace App\Domain\Content\Records;
 
 final readonly class ContentBriefingRecord
 {
-    public function __construct(public int $id)
-    {
-    }
+    public function __construct(public int $id) {}
 }

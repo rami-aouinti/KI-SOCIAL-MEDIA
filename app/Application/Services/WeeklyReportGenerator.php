@@ -12,8 +12,7 @@ class WeeklyReportGenerator
 {
     public function __construct(
         private readonly CapacityPlanner $capacityPlanner,
-    ) {
-    }
+    ) {}
 
     /**
      * Build a human-readable report from persisted records only.
@@ -95,6 +94,7 @@ class WeeklyReportGenerator
                     $lines[] = '  Contenu : aucun briefing/version enregistré.';
                     $lines[] = '  Validation : Aucune validation enregistrée';
                     $lines[] = '  Transmission : Aucune transmission enregistrée';
+
                     continue;
                 }
 
