@@ -20,6 +20,7 @@ class ContentIdea extends Model
         'channels',
         'format',
         'priority_type',
+        'selection_reason',
         'responsible_person',
         'planned_at',
         'estimated_minutes',
