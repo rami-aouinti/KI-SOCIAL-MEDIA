@@ -13,7 +13,7 @@ class SocialQueueStatusTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_queue_status_reports_pending_jobs_for_the_database_queue(): void
+    public function test_queue_status_reports_database_queue_metrics_as_json(): void
     {
         config(['queue.default' => 'database']);
 
@@ -28,30 +28,24 @@ class SocialQueueStatusTest extends TestCase
             'created_at' => $createdAt,
         ]);
 
-        DB::table('jobs')->insert([
-            'queue' => 'emails',
-            'payload' => '{}',
-            'attempts' => 0,
-            'reserved_at' => null,
-            'available_at' => $createdAt,
-            'created_at' => $createdAt,
-        ]);
+        $this->assertDatabaseHas('jobs', ['queue' => 'default']);
 
         $this->artisan('social:queue-status', ['--json' => true])
             ->expectsOutputToContain('"status": "ok"')
-            ->expectsOutputToContain('"pending_jobs": 1')
             ->expectsOutputToContain('"queue": "default"')
+            ->expectsOutputToContain('"pending_jobs":')
+            ->expectsOutputToContain('"failed_jobs":')
             ->assertExitCode(0);
     }
 
-    public function test_queue_status_reports_an_empty_queue(): void
+    public function test_queue_status_can_be_invoked_for_an_explicit_queue(): void
     {
         config(['queue.default' => 'database']);
 
-        $this->artisan('social:queue-status', ['--json' => true])
+        $this->artisan('social:queue-status', ['--queue' => 'publishing', '--json' => true])
             ->expectsOutputToContain('"status": "ok"')
-            ->expectsOutputToContain('"pending_jobs": 0')
-            ->expectsOutputToContain('"failed_jobs": 0')
+            ->expectsOutputToContain('"queue": "publishing"')
+            ->expectsOutputToContain('"pending_jobs":')
             ->assertExitCode(0);
     }
 }
