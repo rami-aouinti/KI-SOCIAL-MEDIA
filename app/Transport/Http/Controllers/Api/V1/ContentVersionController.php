@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Transport\Http\Controllers\Api\V1;
 
+use App\Application\Contracts\AutomationEventPublisherInterface;
 use App\Application\Services\ContentApprovalService;
 use App\Application\Services\ContentVersionCreator;
 use App\Domain\Content\Records\ContentVersionRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
-use App\Infrastructure\Queue\Jobs\DispatchN8nWebhook;
 use App\Transport\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,10 +19,11 @@ final class ContentVersionController extends Controller
         int $briefing,
         Request $request,
         ContentVersionCreator $creator,
+        AutomationEventPublisherInterface $automationEvents,
     ): JsonResponse {
         $version = $creator->create($briefing, $request->all());
 
-        DispatchN8nWebhook::dispatch('content.version.created', [
+        $automationEvents->publish('content.version.created', [
             'content_version_id' => $version->id,
             'briefing_id' => $version->briefingId,
             'version_number' => $version->versionNumber,
@@ -33,11 +34,15 @@ final class ContentVersionController extends Controller
         return response()->json(['data' => $this->serializeRecord($version)], 201);
     }
 
-    public function submitForReview(int $contentVersion, ContentApprovalService $approvals): JsonResponse
+    public function submitForReview(
+        int $contentVersion,
+        ContentApprovalService $approvals,
+        AutomationEventPublisherInterface $automationEvents,
+    ): JsonResponse
     {
         $version = $approvals->submitForReview($contentVersion);
 
-        DispatchN8nWebhook::dispatch('content.version.submitted_for_review', [
+        $automationEvents->publish('content.version.submitted_for_review', [
             'content_version_id' => $version->id,
             'briefing_id' => $version->briefingId,
             'version_number' => $version->versionNumber,
@@ -52,6 +57,7 @@ final class ContentVersionController extends Controller
         int $contentVersion,
         Request $request,
         ContentApprovalService $approvals,
+        AutomationEventPublisherInterface $automationEvents,
     ): JsonResponse {
         $validated = $request->validate([
             'comment' => ['nullable', 'string', 'max:5000'],
@@ -62,7 +68,7 @@ final class ContentVersionController extends Controller
             $validated['comment'] ?? null,
         );
 
-        DispatchN8nWebhook::dispatch('content.version.approved', [
+        $automationEvents->publish('content.version.approved', [
             'content_version_id' => $version->id,
             'briefing_id' => $version->briefingId,
             'version_number' => $version->versionNumber,
@@ -87,7 +93,7 @@ final class ContentVersionController extends Controller
             $validated['comment'],
         );
 
-        DispatchN8nWebhook::dispatch('content.version.rejected', [
+        $automationEvents->publish('content.version.rejected', [
             'content_version_id' => $version->id,
             'briefing_id' => $version->briefingId,
             'version_number' => $version->versionNumber,
