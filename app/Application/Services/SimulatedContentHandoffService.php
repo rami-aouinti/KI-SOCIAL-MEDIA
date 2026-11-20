@@ -4,86 +4,79 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use App\Domain\Content\Records\ContentHandoffRecord;
 use App\Domain\Content\Entities\ContentVersionWorkflow;
-use App\Domain\Shared\Enums\ContentApprovalDecision;
-use App\Transport\Events\ContentHandedOff;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Domain\Events\ContentHandedOffEvent;
+use App\Domain\Events\WorkflowEventPublisherInterface;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;
 use App\Domain\Repositories\ContentHandoffRepositoryInterface;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Domain\Shared\Enums\ContentApprovalDecision;
+use App\Domain\Transactions\TransactionManagerInterface;
 use Illuminate\Validation\ValidationException;
 
-class SimulatedContentHandoffService
+final class SimulatedContentHandoffService
 {
     public function __construct(
         private readonly ContentVersionReadinessValidator $readinessValidator,
         private readonly ContentVersionRepositoryInterface $versions,
         private readonly ContentApprovalRepositoryInterface $approvals,
         private readonly ContentHandoffRepositoryInterface $handoffs,
+        private readonly TransactionManagerInterface $transactions,
+        private readonly WorkflowEventPublisherInterface $events,
     ) {
     }
 
-    public function handoff(ContentVersion $version): ContentHandoffRecord
+    public function handoff(int $versionId): ContentHandoffRecord
     {
-        return DB::transaction(function () use ($version): ContentHandoffRecord {
-            $locked = $this->versions->lockForWorkflow((int) $version->id, true);
+        return $this->transactions->run(function () use ($versionId): ContentHandoffRecord {
+            $locked = $this->versions->lockForWorkflow($versionId, true);
+            $existing = $this->handoffs->findForVersion($locked->id);
 
-            // Return the original result on retries. Never create a second handoff.
-            $existing = $this->handoffs->findForVersion((int) $locked->id);
-
-            if ($existing) {
+            if ($existing !== null) {
                 return $existing;
             }
 
-            $nextStatus = ContentVersionWorkflow::fromStatus($locked->status)->handOff()->status();
-
+            $next = ContentVersionWorkflow::fromStatus($locked->status)->handOff();
             $approval = $this->approvals->findLatestForVersionAndHash(
-                (int) $locked->id,
+                $locked->id,
                 ContentApprovalDecision::APPROVED,
-                $locked->content_hash,
+                $locked->contentHash,
             );
 
-            if (! $approval) {
+            if ($approval === null) {
                 throw ValidationException::withMessages([
                     'approval' => 'A valid approval for this exact content version is required.',
                 ]);
             }
 
             $this->readinessValidator->assertReady($locked);
-
-            $snapshot = $locked->snapshot ?? [];
-            $idea = $locked->briefing?->contentIdea;
-
-            $payload = [
-                'mode' => 'simulated',
-                'destination' => 'simulated-publishing-interface',
-                'content_version_id' => $locked->id,
-                'version_number' => $locked->version_number,
-                'content_hash' => $locked->content_hash,
-                'hook' => $snapshot['hook'],
-                'body' => $snapshot['body'],
-                'channel_variants' => $snapshot['channel_variants'],
-                'media_reference' => $locked->media_reference,
-                'channels' => $locked->channels,
-                'scheduled_at' => $locked->scheduled_at->toDateString(),
-                'responsible_person' => $idea->responsible_person,
-            ];
+            $snapshot = $locked->snapshot;
 
             $record = $this->handoffs->create([
                 'content_version_id' => $locked->id,
                 'content_version_approval_id' => $approval->id,
                 'idempotency_key' => sprintf('content-version:%d:simulated-handoff:v1', $locked->id),
-                'payload' => $payload,
+                'payload' => [
+                    'mode' => 'simulated',
+                    'destination' => 'simulated-publishing-interface',
+                    'content_version_id' => $locked->id,
+                    'version_number' => $locked->versionNumber,
+                    'content_hash' => $locked->contentHash,
+                    'hook' => $snapshot['hook'],
+                    'body' => $snapshot['body'],
+                    'channel_variants' => $snapshot['channel_variants'],
+                    'media_reference' => $locked->mediaReference,
+                    'channels' => $locked->channels,
+                    'scheduled_at' => $locked->scheduledAt,
+                    'responsible_person' => $locked->responsiblePerson,
+                ],
                 'status' => 'handed_off',
-                'handed_off_at' => Carbon::now(),
+                'handed_off_at' => now(),
             ]);
 
-            $locked->status = $nextStatus;
-            $locked->save();
-            ContentHandedOff::dispatch((int) $locked->id);
+            $this->versions->updateStatus($locked->id, $next->status());
+            $this->events->publish(new ContentHandedOffEvent($locked->id));
 
             return $record;
         });

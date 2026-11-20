@@ -5,26 +5,24 @@ declare(strict_types=1);
 namespace App\Application\Services;
 
 use App\Application\DTO\ContentVersionData;
+use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Content\ValueObjects\ContentVersionSnapshot;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
-use Illuminate\Support\Facades\DB;
+use App\Domain\Transactions\TransactionManagerInterface;
 use Illuminate\Support\Facades\Validator;
 
-class ContentVersionCreator
+final class ContentVersionCreator
 {
     public function __construct(
         private readonly ContentVersionRepositoryInterface $versions,
+        private readonly TransactionManagerInterface $transactions,
     ) {
     }
 
     /**
-     * Create an immutable content snapshot for review and later approval.
-     *
      * @param array<string, mixed> $data
      */
-    public function create(ContentBriefing $briefing, array $data): ContentVersion
+    public function create(int $briefingId, array $data): ContentVersionRecord
     {
         $validated = Validator::make($data, [
             'hook' => ['required', 'string'],
@@ -44,17 +42,11 @@ class ContentVersionCreator
 
         $versionData = ContentVersionData::fromValidatedArray($validated);
 
-        return DB::transaction(function () use ($briefing, $versionData): ContentVersion {
-            $lockedBriefing = $this->versions->lockBriefingForVersionCreation(
-                (int) $briefing->getKey()
-            );
+        return $this->transactions->run(function () use ($briefingId, $versionData): ContentVersionRecord {
+            $briefing = $this->versions->lockBriefingForVersionCreation($briefingId);
+            $snapshot = ContentVersionSnapshot::fromApprovalPayload($versionData->approvalPayload());
 
-            // The Domain value object defines the exact immutable content fingerprint.
-            $snapshot = ContentVersionSnapshot::fromApprovalPayload(
-                $versionData->approvalPayload(),
-            );
-
-            return $this->versions->createNextForBriefing($lockedBriefing, [
+            return $this->versions->createNextForBriefing($briefing->id, [
                 'snapshot' => $snapshot->content(),
                 'media_reference' => $versionData->mediaReference,
                 'channels' => $versionData->channels,
