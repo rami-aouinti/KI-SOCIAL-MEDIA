@@ -250,6 +250,18 @@ La règle de dépendance est orientée vers le métier : **Domain ne dépend jam
 
 Les modèles Eloquent sont des objets de persistance et ne doivent pas être présentés comme des entités Domain pures. Les repositories ne sont introduits que lorsqu'ils isolent réellement la persistance ; pas de repository générique pour chaque modèle. Les DTO restent réservés aux frontières et aux données structurées. Les transactions sont déclenchées par les cas d'utilisation Application, pas par les contrôleurs.
 
+#### État de la migration des couches
+
+La migration du code est progressive. À ce stade :
+
+- **Domain** : le port `AiContentGeneratorInterface` est déplacé dans `App\\Domain\\Content\\AI`.
+- **Infrastructure** : le mock déterministe est déplacé dans `App\\Infrastructure\\AI\\Mock` et lié au port par `AppServiceProvider`.
+- **Transport** : les contrôleurs HTTP et la commande de rapport sont déplacés dans `App\\Transport`; les routes et l'enregistrement des commandes Laravel pointent vers ces nouveaux namespaces.
+- **Application** : les services métier et les DTO historiques restent temporairement dans leurs namespaces `App\\Services` et `App\\DTOs`. Leur migration doit se faire par cas d'utilisation, avec mise à jour coordonnée des tests et des dépendances Eloquent.
+- Les modèles et repositories historiques restent également en place tant que leurs contrats dépendent directement des modèles Eloquent. Ils ne doivent pas être déplacés artificiellement dans Domain avant d'avoir des contrats indépendants de la persistance.
+
+Cette étape établit les premières frontières réelles sans prétendre que l'ensemble du dépôt a déjà été migré. Le prochain chantier est la couche Application et ses DTO, puis l'isolation des contrats de persistance et des modèles Eloquent.
+
 #### Stratégie de migration
 
 La migration se fait par tranche fonctionnelle, en conservant le comportement et les tests à chaque étape. Les namespaces, imports, bindings du conteneur, seeders et tests doivent être déplacés ensemble. Les anciens chemins ne doivent pas subsister comme seconde implémentation métier. Aucun changement de comportement fonctionnel, aucune intégration IA réelle et aucune publication réelle ne sont introduits par cette réorganisation.
