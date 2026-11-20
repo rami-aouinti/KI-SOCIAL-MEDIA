@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Repositories;
 
-use App\Models\ContentHandoffRecord;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
 use App\Domain\Repositories\ContentHandoffRepositoryInterface;
 
 class EloquentContentHandoffRepository implements ContentHandoffRepositoryInterface
