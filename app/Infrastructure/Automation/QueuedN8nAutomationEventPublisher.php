@@ -14,6 +14,10 @@ final class QueuedN8nAutomationEventPublisher implements AutomationEventPublishe
      */
     public function publish(string $eventType, array $data): void
     {
+        if (! (bool) config('services.n8n.enabled')) {
+            return;
+        }
+
         DispatchN8nWebhook::dispatch($eventType, $data);
     }
 }
