@@ -8,7 +8,9 @@ use App\Enums\ContentApprovalDecision;
 use App\Enums\ContentVersionStatus;
 use App\Models\ContentHandoffRecord;
 use App\Models\ContentVersion;
-use App\Models\ContentVersionApproval;
+use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
+use App\Repositories\Contracts\ContentHandoffRepositoryInterface;
+use App\Repositories\Contracts\ContentVersionRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,21 +20,19 @@ class SimulatedContentHandoffService
 {
     public function __construct(
         private readonly ContentVersionReadinessValidator $readinessValidator,
+        private readonly ContentVersionRepositoryInterface $versions,
+        private readonly ContentApprovalRepositoryInterface $approvals,
+        private readonly ContentHandoffRepositoryInterface $handoffs,
     ) {
     }
 
     public function handoff(ContentVersion $version): ContentHandoffRecord
     {
         return DB::transaction(function () use ($version): ContentHandoffRecord {
-            $locked = ContentVersion::query()
-                ->with('briefing.contentIdea.workAllocations')
-                ->lockForUpdate()
-                ->findOrFail($version->id);
+            $locked = $this->versions->lockForWorkflow((int) $version->id, true);
 
             // Return the original result on retries. Never create a second handoff.
-            $existing = ContentHandoffRecord::query()
-                ->where('content_version_id', $locked->id)
-                ->first();
+            $existing = $this->handoffs->findForVersion((int) $locked->id);
 
             if ($existing) {
                 return $existing;
@@ -42,12 +42,11 @@ class SimulatedContentHandoffService
                 throw new LogicException('Only approved content versions can be handed off.');
             }
 
-            $approval = ContentVersionApproval::query()
-                ->where('content_version_id', $locked->id)
-                ->where('decision', ContentApprovalDecision::APPROVED->value)
-                ->where('content_hash', $locked->content_hash)
-                ->latest('reviewed_at')
-                ->first();
+            $approval = $this->approvals->findLatestForVersionAndHash(
+                (int) $locked->id,
+                ContentApprovalDecision::APPROVED,
+                $locked->content_hash,
+            );
 
             if (! $approval) {
                 throw ValidationException::withMessages([
@@ -75,7 +74,7 @@ class SimulatedContentHandoffService
                 'responsible_person' => $idea->responsible_person,
             ];
 
-            $record = ContentHandoffRecord::create([
+            $record = $this->handoffs->create([
                 'content_version_id' => $locked->id,
                 'content_version_approval_id' => $approval->id,
                 'idempotency_key' => sprintf('content-version:%d:simulated-handoff:v1', $locked->id),
