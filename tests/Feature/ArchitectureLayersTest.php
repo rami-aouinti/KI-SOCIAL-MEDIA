@@ -41,9 +41,9 @@ class ArchitectureLayersTest extends TestCase
             $source = file_get_contents($file->getPathname());
 
             $this->assertIsString($source);
-            $this->assertStringNotContainsString('Illuminate\\\\', $source, $file->getPathname());
-            $this->assertStringNotContainsString('App\\\\Infrastructure\\\\', $source, $file->getPathname());
-            $this->assertStringNotContainsString('Eloquent\\\\Models', $source, $file->getPathname());
+            $this->assertStringNotContainsString('Illuminate\\', $source, $file->getPathname());
+            $this->assertStringNotContainsString('App\\Infrastructure\\', $source, $file->getPathname());
+            $this->assertStringNotContainsString('Eloquent\\Models', $source, $file->getPathname());
         }
     }
 
