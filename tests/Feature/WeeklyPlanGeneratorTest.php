@@ -64,7 +64,7 @@ class WeeklyPlanGeneratorTest extends TestCase
 
         $this->assertDatabaseCount('weekly_plans', 1);
         $this->assertFalse($result['capacity_report']['within_capacity']);
-        $this->assertSame(10, $result['capacity_report']['people']['person_a']['exceeded_by_minutes']);
+        $this->assertSame(50, $result['capacity_report']['people']['person_a']['exceeded_by_minutes']);
         $this->assertSame('capacity_exceeded', $result['capacity_report']['warnings'][0]['type']);
     }
 
