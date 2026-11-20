@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Transport\Http\Controllers;
 
-use App\Models\WeeklyPlan;
-use App\Services\WeeklyReportGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\WeeklyReportGenerator;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
