@@ -9,6 +9,7 @@ use App\Enums\ContentIdeaStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ContentIdea extends Model
 {
@@ -50,5 +51,10 @@ class ContentIdea extends Model
     public function workAllocations(): HasMany
     {
         return $this->hasMany(WorkAllocation::class);
+    }
+
+    public function briefing(): HasOne
+    {
+        return $this->hasOne(ContentBriefing::class);
     }
 }
