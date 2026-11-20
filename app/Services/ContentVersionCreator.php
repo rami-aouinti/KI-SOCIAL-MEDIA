@@ -28,6 +28,10 @@ class ContentVersionCreator
             'channels' => ['required', 'array', 'min:1'],
             'channels.*' => ['required', 'string', 'in:instagram,facebook,tiktok,linkedin'],
             'scheduled_at' => ['required', 'date_format:Y-m-d'],
+            'generation' => ['nullable', 'array'],
+            'generation.provider' => ['required_with:generation', 'string', 'max:50'],
+            'generation.simulated' => ['required_with:generation', 'boolean'],
+            'generation.model' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
         return DB::transaction(function () use ($briefing, $validated): ContentVersion {
@@ -45,12 +49,16 @@ class ContentVersionCreator
                 'channel_variants' => $validated['channel_variants'],
             ];
 
+            if (isset($validated['generation'])) {
+                $snapshot['generation'] = $validated['generation'];
+            }
+
             $channels = array_values(array_unique($validated['channels']));
             $scheduledAt = $validated['scheduled_at'];
             $mediaReference = $validated['media_reference'] ?? null;
 
-            // The approval fingerprint covers every field that must be approved:
-            // copy, channel-specific variants, media reference, channels and schedule.
+            // The approval fingerprint covers copy, variants, media, channels,
+            // schedule and generation provenance.
             $approvalPayload = [
                 'snapshot' => $snapshot,
                 'media_reference' => $mediaReference,
