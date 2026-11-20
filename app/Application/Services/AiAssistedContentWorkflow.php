@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Contracts\ContentBriefingWriterInterface;
 use App\Application\DTO\GeneratedBriefingData;
 use App\Application\DTO\GenerationMetadataData;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
-use App\Domain\Content\Records\ContentBriefingRecord;
-use App\Domain\Content\Records\ContentVersionRecord;
-use App\Domain\Transactions\TransactionManagerInterface;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -20,15 +20,13 @@ class AiAssistedContentWorkflow
         private readonly AiContentGeneratorInterface $generator,
         private readonly WeeklyPlanGenerator $weeklyPlanGenerator,
         private readonly ContentVersionCreator $contentVersionCreator,
-        private readonly ContentBriefingWriterInterface $briefings,
-        private readonly TransactionManagerInterface $transactions,
     ) {}
 
     /**
      * Generate five structured ideas, then pass them through the normal
      * validation, persistence and capacity-planning workflow.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array<string, mixed>
      */
     public function generateWeeklyPlan(array $input): array
@@ -48,23 +46,25 @@ class AiAssistedContentWorkflow
     }
 
     /**
-     * Generate a briefing and its first immutable version for human review.
+     * Generate and persist a complete briefing plus its first immutable
+     * content version. Approval remains a separate human action.
      *
-     * @return array{briefing: ContentBriefingRecord, version: ContentVersionRecord, generation: array<string, mixed>}
+     * @return array{briefing: ContentBriefing, version: ContentVersion, generation: array<string, mixed>}
      */
-    public function generateBriefing(int $ideaId): array
+    public function generateBriefing(ContentIdea $idea): array
     {
-        $idea = $this->briefings->findIdea($ideaId);
+        $idea->loadMissing('weeklyPlan');
+
         $context = [
             'idea' => [
                 'title' => $idea->title,
                 'topic' => $idea->topic,
-                'target_audience' => $idea->targetAudience,
+                'target_audience' => $idea->target_audience,
                 'channels' => $idea->channels,
-                'planned_at' => $idea->plannedAt,
+                'planned_at' => $idea->planned_at?->format('Y-m-d'),
             ],
-            'seasonal_occasion' => $idea->seasonalOccasion,
-            'tone' => $idea->tone,
+            'seasonal_occasion' => $idea->weeklyPlan?->seasonal_occasion,
+            'tone' => $idea->weeklyPlan?->input_data['tone'] ?? 'friendly and personal',
         ];
 
         $generated = $this->generator->generateBriefing($context);
@@ -85,23 +85,37 @@ class AiAssistedContentWorkflow
         $briefingData = GeneratedBriefingData::fromValidatedArray($validated);
 
         foreach ($idea->channels as $channel) {
-            if (isset($briefingData->channelVariants[$channel])) {
-                continue;
+            if (! isset($briefingData->channelVariants[$channel])) {
+                throw ValidationException::withMessages([
+                    'channel_variants' => "The generated briefing is missing the {$channel} variant.",
+                ]);
             }
-
-            throw ValidationException::withMessages([
-                'channel_variants' => "The generated briefing is missing the {$channel} variant.",
-            ]);
         }
 
         $metadata = $this->generationMetadata();
 
-        return $this->transactions->run(function () use ($idea, $briefingData, $metadata): array {
-            $briefing = $this->briefings->create($idea->id, $briefingData);
-            $version = $this->contentVersionCreator->create($briefing->id, [
+        return DB::transaction(function () use ($idea, $briefingData, $metadata): array {
+            if ($idea->briefing()->exists()) {
+                throw ValidationException::withMessages([
+                    'briefing' => 'A briefing already exists. Create a new content version instead of overwriting it.',
+                ]);
+            }
+
+            $briefing = $idea->briefing()->create([
+                'hook' => $briefingData->hook,
+                'body' => $briefingData->body,
+                'filming_plan' => $briefingData->filmingPlan,
+                'on_screen_text' => $briefingData->onScreenText,
+                'cover_idea' => $briefingData->coverIdea,
+                'cta_text' => $briefingData->ctaText,
+                'appointment_url' => $briefingData->appointmentUrl,
+                'status' => 'ready',
+            ]);
+
+            $version = $this->contentVersionCreator->create((int) $briefing->getKey(), [
                 ...$briefingData->toArray(),
                 'channels' => $idea->channels,
-                'scheduled_at' => $idea->plannedAt,
+                'scheduled_at' => $idea->planned_at->format('Y-m-d'),
                 'generation' => $metadata,
             ]);
 
@@ -113,7 +127,9 @@ class AiAssistedContentWorkflow
         });
     }
 
-    /** @return array{provider: string, simulated: bool, model: string} */
+    /**
+     * @return array{provider: string, simulated: bool, model: string}
+     */
     private function generationMetadata(): array
     {
         return (new GenerationMetadataData(

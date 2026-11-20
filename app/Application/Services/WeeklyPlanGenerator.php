@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Application\Contracts\WeeklyPlanWriterInterface;
 use App\Application\DTO\WeeklyPlanData;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as LaravelValidator;
 
@@ -13,15 +14,14 @@ class WeeklyPlanGenerator
 {
     public function __construct(
         private readonly CapacityPlanner $capacityPlanner,
-        private readonly WeeklyPlanWriterInterface $plans,
     ) {}
 
     /**
-     * Validate, assess team capacity and persist a structured weekly plan.
+     * Persist a structured plan after validating both user input and generated ideas.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      * @return array{
-     *     plan: mixed,
+     *     plan: WeeklyPlan,
      *     capacity_report: array<string, mixed>,
      *     selection_reasons: array<int, array{title: string, priority_type: string, reason: string}>
      * }
@@ -68,8 +68,10 @@ class WeeklyPlanGenerator
 
         $validator->after(function (LaravelValidator $validator) use ($input): void {
             $weekStart = $input['week_start'] ?? null;
+
             if (is_string($weekStart)) {
                 $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $weekStart);
+
                 if ($date !== false && $date->format('N') !== '1') {
                     $validator->errors()->add('week_start', 'The week must start on a Monday.');
                 }
@@ -77,18 +79,19 @@ class WeeklyPlanGenerator
 
             $ideas = $input['ideas'] ?? [];
 
-            if (!is_array($ideas)) {
+            if (! is_array($ideas)) {
                 return;
             }
 
-            $priorityTypes = array_column(array_filter($ideas, 'is_array'), 'priority_type');
             $priorities = count(array_filter(
-                $priorityTypes,
-                static fn (mixed $priorityType): bool => $priorityType === 'priority',
+                $ideas,
+                static fn (mixed $idea): bool => is_array($idea)
+                    && ($idea['priority_type'] ?? null) === 'priority'
             ));
             $reserves = count(array_filter(
-                $priorityTypes,
-                static fn (mixed $priorityType): bool => $priorityType === 'reserve',
+                $ideas,
+                static fn (mixed $idea): bool => is_array($idea)
+                    && ($idea['priority_type'] ?? null) === 'reserve'
             ));
 
             if ($priorities !== 3) {
@@ -100,30 +103,62 @@ class WeeklyPlanGenerator
             }
         });
 
-        $planData = WeeklyPlanData::fromValidatedArray($validator->validate());
-        $allocations = [];
-        foreach ($planData->ideas as $idea) {
-            foreach ($idea->allocations as $allocation) {
-                $allocations[] = [
-                    'person_key' => $allocation->personKey,
-                    'estimated_minutes' => $allocation->estimatedMinutes,
-                ];
+        $validated = $validator->validate();
+        $planData = WeeklyPlanData::fromValidatedArray($validated);
+
+        return DB::transaction(function () use ($planData): array {
+            $plan = WeeklyPlan::create([
+                'week_start' => $planData->weekStart,
+                'seasonal_occasion' => $planData->seasonalOccasion,
+                'input_data' => $planData->inputData,
+                'capacity_limits' => $planData->capacityLimits,
+            ]);
+
+            $plan->inspirations()->createMany($planData->inspirationRows());
+
+            foreach ($planData->ideas as $ideaData) {
+                $estimatedMinutes = $ideaData->estimatedMinutes();
+
+                $idea = $plan->contentIdeas()->create([
+                    'title' => $ideaData->title,
+                    'topic' => $ideaData->topic,
+                    'target_audience' => $ideaData->targetAudience,
+                    'channels' => $ideaData->channels,
+                    'format' => $ideaData->format,
+                    'priority_type' => $ideaData->priorityType,
+                    'selection_reason' => $ideaData->selectionReason,
+                    'responsible_person' => $ideaData->responsiblePerson,
+                    'planned_at' => $ideaData->plannedAt,
+                    'estimated_minutes' => $estimatedMinutes,
+                ]);
+
+                $idea->workAllocations()->createMany(array_map(
+                    static fn ($allocation): array => $allocation->toArray(),
+                    $ideaData->allocations,
+                ));
             }
-        }
 
-        $plan = $this->plans->create($planData);
+            $plan->load(['inspirations', 'contentIdeas.workAllocations']);
 
-        return [
-            'plan' => $plan,
-            'capacity_report' => $this->capacityPlanner->analyze($planData->capacityLimits, $allocations),
-            'selection_reasons' => array_map(
-                static fn ($idea): array => [
-                    'title' => $idea->title,
-                    'priority_type' => $idea->priorityType,
-                    'reason' => $idea->selectionReason,
-                ],
-                $planData->ideas,
-            ),
-        ];
+            $allocations = $plan->contentIdeas
+                ->flatMap(static fn ($idea) => $idea->workAllocations)
+                ->map(static fn ($allocation): array => [
+                    'person_key' => $allocation->person_key,
+                    'estimated_minutes' => $allocation->estimated_minutes,
+                ])
+                ->all();
+
+            return [
+                'plan' => $plan,
+                'capacity_report' => $this->capacityPlanner->analyze($plan->capacity_limits ?? [], $allocations),
+                'selection_reasons' => $plan->contentIdeas
+                    ->map(static fn ($idea): array => [
+                        'title' => $idea->title,
+                        'priority_type' => $idea->priority_type->value,
+                        'reason' => $idea->selection_reason,
+                    ])
+                    ->all(),
+            ];
+        });
     }
 }

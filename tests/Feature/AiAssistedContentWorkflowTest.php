@@ -8,7 +8,6 @@ use App\Application\Services\AiAssistedContentWorkflow;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -85,14 +84,13 @@ class AiAssistedContentWorkflowTest extends TestCase
         $plan = app(AiAssistedContentWorkflow::class)->generateWeeklyPlan($this->planInput())['plan'];
         $idea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
 
-        $result = app(AiAssistedContentWorkflow::class)->generateBriefing((int) $idea->getKey());
+        $result = app(AiAssistedContentWorkflow::class)->generateBriefing($idea);
 
         $this->assertDatabaseCount('content_briefings', 1);
         $this->assertDatabaseCount('content_versions', 1);
-        $briefing = ContentBriefing::query()->findOrFail($result['briefing']->id);
-        $this->assertSame('ready', $briefing->status->value);
-        $this->assertNotEmpty($briefing->filming_plan);
-        $this->assertNotEmpty($briefing->on_screen_text);
+        $this->assertSame('ready', $result['briefing']->status->value);
+        $this->assertNotEmpty($result['briefing']->filming_plan);
+        $this->assertNotEmpty($result['briefing']->on_screen_text);
         $this->assertSame(
             ['instagram', 'tiktok'],
             $result['version']->channels
@@ -102,7 +100,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $this->assertSame('mock', $result['version']->snapshot['generation']['provider']);
         $this->assertTrue($result['version']->snapshot['generation']['simulated']);
         $this->assertSame(ContentVersionStatus::DRAFT, $result['version']->status);
-        $this->assertStringStartsWith('https://example.com/', $briefing->appointment_url);
+        $this->assertStringStartsWith('https://example.com/', $result['briefing']->appointment_url);
     }
 
     public function test_generated_briefing_cannot_be_silently_overwritten(): void
@@ -111,10 +109,10 @@ class AiAssistedContentWorkflowTest extends TestCase
         $idea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
         $workflow = app(AiAssistedContentWorkflow::class);
 
-        $workflow->generateBriefing((int) $idea->getKey());
+        $workflow->generateBriefing($idea);
 
         $this->expectException(ValidationException::class);
-        $workflow->generateBriefing((int) $idea->getKey());
+        $workflow->generateBriefing($idea);
     }
 
     /**
