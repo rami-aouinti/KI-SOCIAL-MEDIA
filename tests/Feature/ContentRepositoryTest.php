@@ -8,7 +8,7 @@ use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Domain\Shared\Enums\ContentBriefingStatus;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
 use App\Domain\Shared\Enums\WorkAllocationType;
-use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Domain\Content\Records\ContentVersionRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;
 use App\Domain\Repositories\ContentHandoffRepositoryInterface;
@@ -79,7 +79,7 @@ class ContentRepositoryTest extends TestCase
         $latestMatching = $repository->findLatestForVersionAndHash(
             $version->id,
             ContentApprovalDecision::APPROVED,
-            $version->content_hash,
+            $version->contentHash,
         );
 
         $this->assertNotNull($latestMatching);
