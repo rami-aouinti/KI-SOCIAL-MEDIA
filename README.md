@@ -15,12 +15,14 @@ Le projet privilégie un workflow métier complet et testable plutôt qu'une pla
 - Génération d'un planning hebdomadaire : exactement 3 priorités et 2 idées de réserve.
 - Enregistrement d'au moins 3 références d'inspiration synthétiques.
 - Répartition des tâches et calcul de capacité (Personne A : 90 min, Personne B : 150 min).
-- Briefing de contenu structuré pour une idée prioritaire.
+- Avertissement en cas de dépassement : le système ne déplace pas automatiquement les tâches et ne modifie jamais les capacités.
+- Briefing complet pour une idée prioritaire avec variantes Instagram et TikTok.
 - Création de versions immuables avec variantes par canal et empreinte SHA-256.
 - Workflow de validation humaine : `draft` → `in_review` → `approved`.
 - Validation liée au hash de la version exacte ; une nouvelle version doit être validée séparément.
 - Transmission simulée et idempotente : une seule transmission par version, avec payload JSON persisté.
-- Rapport hebdomadaire texte généré depuis les données enregistrées.
+- Rapport hebdomadaire TXT généré depuis les données enregistrées.
+- Page d'accueil de démonstration : planning, inspirations, capacités, briefing, validation et handoff.
 
 Les transmissions ne contactent aucune API externe. Le statut `handed_off` signifie uniquement que le payload a été enregistré dans la simulation.
 
@@ -30,6 +32,8 @@ Les transmissions ne contactent aucune API externe. Le statut `handed_off` signi
 - **PHP 8.4 / Laravel / Eloquent** : conventions, validation, migrations et injection de dépendances.
 - **MySQL 8.4** : base relationnelle du projet et environnement Docker/Sail.
 - **Services applicatifs ciblés** : `WeeklyPlanGenerator`, `CapacityPlanner`, `ContentVersionCreator`, `ContentApprovalService`, `SimulatedContentHandoffService`, `WeeklyReportGenerator`.
+- **Seeder idempotent** : charge un jeu de données fictif complet sans créer de doublons lorsqu'il est exécuté plusieurs fois.
+- **Commande Artisan** : exporte le rapport TXT depuis le plan enregistré.
 - **Enums** pour les statuts, priorités, décisions et types d'affectation.
 - **JSON** pour les snapshots, variantes de canal, entrées et payloads cohérents.
 - **Tests unitaires et Feature** pour protéger les règles métier.
@@ -52,7 +56,25 @@ cp .env.example .env
 
 Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la configuration utilise le service MySQL de Compose, notamment `DB_CONNECTION=mysql` et `DB_HOST=mysql`.
 
-## 5. Commandes utiles
+## 5. Démonstration en 3 commandes
+
+```bash
+# Charger le planning, les inspirations, les cinq idées,
+# le briefing, les variantes, l'approbation et le handoff simulé.
+./vendor/bin/sail artisan db:seed --class=Database\\Seeders\\DemoContentSeeder
+
+# Ouvrir le tableau de démonstration
+# http://localhost
+
+# Générer le rapport hebdomadaire TXT
+./vendor/bin/sail artisan weekly-report:generate
+```
+
+Le seeder est idempotent : le relancer ne crée pas de planning, de version, d'approbation ou de transmission en double. Les données de démonstration utilisent la semaine du 23 novembre 2026 et des identifiants/médias fictifs.
+
+Le rapport est écrit dans `storage/app/private/weekly-reports/`. La page d'accueil propose également un téléchargement direct du rapport.
+
+## 6. Commandes utiles
 
 ```bash
 # Lancer tous les tests
@@ -62,6 +84,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ./vendor/bin/sail artisan test tests/Feature/ContentApprovalServiceTest.php
 ./vendor/bin/sail artisan test tests/Feature/SimulatedContentHandoffServiceTest.php
 ./vendor/bin/sail artisan test tests/Feature/WeeklyReportGeneratorTest.php
+./vendor/bin/sail artisan test tests/Feature/DemoContentSeederTest.php
 
 # Voir les migrations
 ./vendor/bin/sail artisan migrate:status
@@ -70,7 +93,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ./vendor/bin/sail down
 ```
 
-## 6. Règles de sécurité métier démontrées
+## 7. Règles de sécurité métier démontrées
 
 1. Une version ne peut être approuvée que lorsqu'elle est en revue et complète.
 2. La validation enregistre le hash exact de la version approuvée.
@@ -79,19 +102,21 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 5. Une contrainte unique en base empêche plusieurs transmissions de la même version.
 6. Une répétition retourne le résultat déjà enregistré au lieu de créer un doublon.
 7. Le rapport est calculé à partir des enregistrements disponibles ; les métriques absentes restent inconnues.
+8. Le contrôle de capacité signale les dépassements sans réaffectation automatique ni modification des limites.
 
-## 7. Tests et preuve
+## 8. Tests et preuve
 
-Les tests couvrent notamment la génération du planning, les inspirations, les affectations, les capacités, les briefings, l'immuabilité des versions, la validation humaine, la transmission idempotente et l'export du rapport.
+Les tests couvrent notamment la génération du planning, les inspirations, les affectations, les capacités, les briefings, l'immuabilité des versions, la validation humaine, la transmission idempotente, l'export du rapport et le scénario de démonstration.
 
-Les résultats doivent être copiés depuis l'exécution locale réelle de `./vendor/bin/sail artisan test`. Ne pas annoncer un nombre de tests sans avoir exécuté la suite.
+Les résultats doivent être copiés depuis l'exécution locale réelle de `./vendor/bin/sail artisan test`. Ne pas annoncer un nombre de tests sans avoir exécuté la suite après le dernier changement.
 
-## 8. Limites explicites
+## 9. Limites explicites
 
 - Les inspirations sont des exemples synthétiques, pas des tendances mesurées en direct.
 - Le média est une référence synthétique ; aucun fichier vidéo n'est téléversé.
 - La génération IA et la publication externe ne sont pas présentées comme des intégrations actives.
 - La transmission est une simulation locale.
+- Le contrôle de capacité avertit ; il ne replanifie pas automatiquement.
 - Les extensions (analytics, attribution, ROI, commentaires, intégrations et disponibilité de rendez-vous) restent hors du MVP.
 
 **Principe directeur :** rendre les décisions, validations, limites et effets du workflow visibles et vérifiables, sans simuler une intégration réelle comme si elle existait.
