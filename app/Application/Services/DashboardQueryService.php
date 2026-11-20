@@ -12,8 +12,7 @@ final readonly class DashboardQueryService
     public function __construct(
         private DashboardDataSourceInterface $dataSource,
         private CapacityPlanner $capacityPlanner,
-    ) {
-    }
+    ) {}
 
     public function getDashboard(): DashboardData
     {
