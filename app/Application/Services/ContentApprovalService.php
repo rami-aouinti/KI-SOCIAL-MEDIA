@@ -52,7 +52,7 @@ final class ContentApprovalService
                 'reviewed_at' => now(),
             ]);
 
-            $updated = $this->versions->updateStatus($locked->id, $next->status());
+            $updated = $this->versions->updateStatus($locked->id, $next->status);
             $this->events->publish(new ContentApprovedEvent($locked->id));
 
             return $updated;
@@ -75,7 +75,7 @@ final class ContentApprovalService
                 'reviewed_at' => now(),
             ]);
 
-            $updated = $this->versions->updateStatus($locked->id, $next->status());
+            $updated = $this->versions->updateStatus($locked->id, $next->status);
             $this->events->publish(new ContentRejectedEvent($locked->id));
 
             return $updated;
