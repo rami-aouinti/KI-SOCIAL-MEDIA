@@ -30,7 +30,7 @@ class QueueJobReliabilityTest extends TestCase
             ->with(
                 'Weekly report refresh job failed permanently',
                 Mockery::on(static fn (array $context): bool => $context['content_version_id'] === 42
-                    && $context['attempts'] === 0
+                    && $context['attempts'] === 1
                     && $context['exception'] === RuntimeException::class
                     && $context['message'] === 'Database unavailable'),
             );
