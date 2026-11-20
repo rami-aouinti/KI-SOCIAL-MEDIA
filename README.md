@@ -61,7 +61,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ```bash
 # Charger le planning, les inspirations, les cinq idées,
 # le briefing, les variantes, l'approbation et le handoff simulé.
-./vendor/bin/sail artisan db:seed --class=Database\\Seeders\\DemoContentSeeder
+./vendor/bin/sail artisan db:seed --class=Database\Seeders\DemoContentSeeder
 
 # Ouvrir le tableau de démonstration
 # http://localhost
