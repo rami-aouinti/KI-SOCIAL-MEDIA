@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\\Transport\\Http\\Controllers;
+namespace App\Transport\Http\Controllers;
 
-use App\\Application\\Services\\CapacityPlanner;
-use App\\Infrastructure\\Persistence\\Eloquent\\Models\\WeeklyPlan;
-use Illuminate\\Contracts\\View\\View;
+use App\Application\Services\CapacityPlanner;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
 {
