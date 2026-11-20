@@ -33,7 +33,8 @@ class MockAiContentGenerator implements AiContentGeneratorInterface
                 'responsible_person' => 'person_a',
                 'day' => 1,
                 'allocations' => [
-                    ['person_key' => 'person_a', 'work_type' => 'production', 'estimated_minutes' => 30],
+                    ['person_key' => 'person_a', 'work_type' => 'production', 'estimated_minutes' => 25],
+                    ['person_key' => 'person_a', 'work_type' => 'approval', 'estimated_minutes' => 5],
                     ['person_key' => 'person_b', 'work_type' => 'variants', 'estimated_minutes' => 20],
                 ],
             ],
