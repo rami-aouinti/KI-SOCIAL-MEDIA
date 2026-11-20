@@ -10,11 +10,11 @@ The goal is not to build a complete social-media management platform. The goal i
 
 | Timebox | Duration | Deliverable |
 |---|---:|---|
-| 00:00–00:30 | 30 min | Symfony project setup, environment and basic application structure |
-| 00:30–01:15 | 45 min | Idea/content entity, persistence and basic CRUD |
+| 00:00–00:30 | 30 min | Laravel project setup, environment, database and basic application structure |
+| 00:30–01:15 | 45 min | Eloquent models, migrations, persistence and basic CRUD |
 | 01:15–02:15 | 60 min | AI provider interface and content generation for selected channels |
 | 02:15–03:15 | 60 min | Review/approval workflow and business rules |
-| 03:15–04:15 | 60 min | Minimal usable web interface |
+| 03:15–04:15 | 60 min | Minimal usable web interface with Blade |
 | 04:15–04:45 | 30 min | Essential automated tests |
 | 04:45–05:00 | 15 min | README, demo data and final verification |
 | **Total** | **300 min** | **Runnable MVP** |
@@ -76,20 +76,41 @@ To protect the 5-hour limit, this MVP will not implement:
 
 These are possible future improvements, not promises for the 5-hour delivery.
 
-## 4. Proposed technical approach
+## 4. Technical approach and framework choice
 
-Keep the application as a **single Symfony monolith** to minimize setup and integration overhead.
+Use **Laravel as a single PHP monolith**. The framework provides the application foundation so implementation time can be spent on the actual content workflow and its business rules rather than rebuilding common web infrastructure.
+
+### Stack
 
 - PHP 8.4
-- Symfony 7.4
-- Doctrine ORM
-- SQLite for a lightweight local development database (unless the existing environment makes another database simpler)
-- Twig for server-rendered pages
-- Symfony Validator and forms where useful
-- PHPUnit for automated tests
-- An `AiContentGeneratorInterface` with a deterministic mock implementation; a real API adapter is optional
+- Latest stable Laravel release compatible with the installed PHP version
+- Eloquent ORM
+- SQLite for lightweight local development
+- Blade for server-rendered pages
+- Laravel routing and Form Request validation
+- Laravel service container for dependency injection
+- PHPUnit or Pest for automated tests
+- Docker Compose only if it can be configured within the initial 30-minute setup timebox; otherwise use the simplest working local environment
 
-The exact dependency versions may be adjusted to what is available in the development environment. Avoid adding a dependency unless it directly supports an MVP requirement.
+### Why Laravel?
+
+- Routing, validation, database migrations and dependency injection are available out of the box.
+- Eloquent makes the small CRUD and persistence requirements quick to implement.
+- Blade provides a straightforward server-rendered interface without introducing a separate frontend application.
+- Laravel's testing tools make it practical to cover the critical workflow rules.
+- Its ecosystem is well suited to building this kind of web application quickly.
+
+A framework is a pragmatic choice here: it supplies established infrastructure and conventions, while the application-specific value remains in the business logic. Symfony would also be technically suitable; Laravel is selected for this implementation to gain practical experience with its ecosystem.
+
+### Keep the implementation deliberately small
+
+- Use Eloquent models and migrations for persistence.
+- Use controllers for HTTP orchestration, not for complex business logic.
+- Put content generation behind an `AiContentGeneratorInterface` and bind a deterministic mock implementation through Laravel's service container.
+- Keep approval and handoff rules in a focused application service (or a small number of focused services).
+- Use Form Requests for input validation where useful.
+- Do not add repositories, interfaces, packages or architectural layers without a concrete need.
+- Do not add Livewire or Inertia to the mandatory scope; Blade is sufficient for this MVP.
 
 ## 5. Minimal domain model
 
@@ -97,35 +118,35 @@ The exact dependency versions may be adjusted to what is available in the develo
 
 - `id`
 - `topic`
-- `targetAudience`
+- `target_audience`
 - `tone`
-- `channels`
+- `channels` (JSON)
 - `status`
-- `createdAt`
-- `updatedAt`
+- `created_at`
+- `updated_at`
 
 ### ContentDraft
 
 - `id`
-- `contentIdea`
+- `content_idea_id`
 - `hook`
 - `body`
-- `callToAction`
-- `channelVariants`
-- `visualSuggestion`
+- `call_to_action`
+- `channel_variants` (JSON)
+- `visual_suggestion`
 - `version`
-- `approvedVersionHash` (nullable)
-- `createdAt`
-- `updatedAt`
+- `approved_version_hash` (nullable)
+- `created_at`
+- `updated_at`
 
 ### HandoffRecord
 
 - `id`
-- `contentDraft`
-- `versionHash`
-- `idempotencyKey` (unique)
-- `payload`
-- `createdAt`
+- `content_draft_id`
+- `version_hash`
+- `idempotency_key` (unique)
+- `payload` (JSON)
+- `created_at`
 
 Keep the model smaller if implementation time requires it. Do not build a generic workflow engine.
 
@@ -156,23 +177,29 @@ The MVP is considered complete when the following scenarios work:
 
 At least the most important business rules (AT-03, AT-05, AT-06 and AT-07) must have automated tests. If time allows, cover all acceptance criteria.
 
-## 8. Suggested project structure
+## 8. Suggested Laravel project structure
 
-The structure should follow the Symfony conventions and stay intentionally small. One possible organization:
+Follow Laravel conventions and keep the structure intentionally small:
 
 ```text
-src/
-  Controller/
-  Entity/
-  Enum/
-  Repository/
-  Service/
+app/
+  Http/
+    Controllers/
+    Requests/
+  Models/
+  Services/
     AI/
     Workflow/
-templates/
-  content/
+database/
+  migrations/
+  seeders/
+resources/
+  views/
+    content/
+routes/
+  web.php
 tests/
-  Functional/
+  Feature/
   Unit/
 ```
 
@@ -180,14 +207,15 @@ Do not create empty layers or interfaces without a concrete use.
 
 ## 9. Local setup and run
 
-The exact commands will be added once the Symfony skeleton and dependencies are created. The intended developer experience is:
+The exact commands will be added once the Laravel skeleton and dependencies are created. The intended developer experience is:
 
 1. Clone the repository.
-2. Install dependencies.
-3. Configure the local database and optional AI credentials.
-4. Run Doctrine migrations.
-5. Start the Symfony development server.
-6. Open the application in a browser and follow the demo workflow.
+2. Install Composer dependencies.
+3. Copy `.env.example` to `.env` and generate the application key.
+4. Configure the SQLite database.
+5. Run Laravel migrations and seeders.
+6. Start the Laravel development server.
+7. Open the application in a browser and follow the demo workflow.
 
 The mock AI provider must work without an API key so the demo remains reproducible.
 
