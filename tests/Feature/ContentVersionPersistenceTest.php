@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Application\Services\ContentVersionCreator;
 use App\Domain\Shared\Enums\ContentBriefingStatus;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-use App\Application\Services\ContentVersionCreator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,8 +21,7 @@ class ContentVersionPersistenceTest extends TestCase
     public function test_it_creates_a_versioned_snapshot_with_a_sha256_hash(): void
     {
         $briefing = $this->createBriefing();
-
-        $version = app(ContentVersionCreator::class)->create($briefing, $this->versionData());
+        $version = app(ContentVersionCreator::class)->create((int) $briefing->getKey(), $this->versionData());
 
         $this->assertDatabaseHas('content_versions', [
             'id' => $version->id,
@@ -31,7 +31,7 @@ class ContentVersionPersistenceTest extends TestCase
         ]);
         $this->assertSame(ContentVersionStatus::DRAFT, $version->status);
         $this->assertSame('Try these winter eyewear tips.', $version->snapshot['hook']);
-        $this->assertSame(64, strlen($version->content_hash));
+        $this->assertSame(64, strlen($version->contentHash));
         $this->assertSame(1, $briefing->versions()->count());
     }
 
@@ -40,23 +40,24 @@ class ContentVersionPersistenceTest extends TestCase
         $briefing = $this->createBriefing();
         $creator = app(ContentVersionCreator::class);
 
-        $first = $creator->create($briefing, $this->versionData());
+        $first = $creator->create((int) $briefing->getKey(), $this->versionData());
         $secondData = $this->versionData();
         $secondData['body'] = 'A revised version of the content.';
-        $second = $creator->create($briefing, $secondData);
+        $second = $creator->create((int) $briefing->getKey(), $secondData);
 
-        $this->assertSame(1, $first->version_number);
-        $this->assertSame(2, $second->version_number);
-        $this->assertNotSame($first->content_hash, $second->content_hash);
+        $this->assertSame(1, $first->versionNumber);
+        $this->assertSame(2, $second->versionNumber);
+        $this->assertNotSame($first->contentHash, $second->contentHash);
     }
 
     public function test_version_belongs_to_briefing_and_briefing_has_versions(): void
     {
         $briefing = $this->createBriefing();
-        $version = app(ContentVersionCreator::class)->create($briefing, $this->versionData());
+        $version = app(ContentVersionCreator::class)->create((int) $briefing->getKey(), $this->versionData());
 
-        $this->assertTrue($version->briefing->is($briefing));
-        $this->assertTrue($briefing->versions->first()->is($version));
+        $persisted = ContentVersion::query()->findOrFail($version->id);
+        $this->assertTrue($persisted->briefing->is($briefing));
+        $this->assertTrue($briefing->versions->first()->is($persisted));
     }
 
     public function test_missing_channel_variant_is_rejected_without_creating_version(): void
@@ -68,36 +69,36 @@ class ContentVersionPersistenceTest extends TestCase
         $this->expectException(\Illuminate\Validation\ValidationException::class);
 
         try {
-            app(ContentVersionCreator::class)->create($briefing, $data);
+            app(ContentVersionCreator::class)->create((int) $briefing->getKey(), $data);
         } finally {
             $this->assertDatabaseCount('content_versions', 0);
         }
     }
 
-
     public function test_snapshot_fields_cannot_be_changed_after_creation(): void
     {
         $briefing = $this->createBriefing();
-        $version = app(ContentVersionCreator::class)->create($briefing, $this->versionData());
+        $version = app(ContentVersionCreator::class)->create((int) $briefing->getKey(), $this->versionData());
+        $persisted = ContentVersion::query()->findOrFail($version->id);
+        $persisted->snapshot = ['hook' => 'Changed after approval'];
 
-        $version->snapshot = ['hook' => 'Changed after approval'];
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Create a new version instead.');
 
-        $version->save();
+        $persisted->save();
     }
 
     public function test_hash_changes_when_schedule_or_media_reference_changes(): void
     {
         $briefing = $this->createBriefing();
         $creator = app(ContentVersionCreator::class);
-        $first = $creator->create($briefing, $this->versionData());
+        $first = $creator->create((int) $briefing->getKey(), $this->versionData());
 
         $changed = $this->versionData();
         $changed['scheduled_at'] = '2026-11-26';
-        $second = $creator->create($briefing, $changed);
+        $second = $creator->create((int) $briefing->getKey(), $changed);
 
-        $this->assertNotSame($first->content_hash, $second->content_hash);
+        $this->assertNotSame($first->contentHash, $second->contentHash);
     }
 
     private function createBriefing(): ContentBriefing
@@ -140,14 +141,8 @@ class ContentVersionPersistenceTest extends TestCase
             'hook' => 'Try these winter eyewear tips.',
             'body' => 'Keep your glasses clear with these simple habits.',
             'channel_variants' => [
-                'instagram' => [
-                    'text' => 'Save these three winter eyewear tips.',
-                    'format' => 'carousel',
-                ],
-                'tiktok' => [
-                    'text' => 'Three quick tips to keep your glasses clear.',
-                    'format' => 'short_video',
-                ],
+                'instagram' => ['text' => 'Save these three winter eyewear tips.', 'format' => 'carousel'],
+                'tiktok' => ['text' => 'Three quick tips to keep your glasses clear.', 'format' => 'short_video'],
             ],
             'media_reference' => 'synthetic-media/winter-eyewear-demo.mp4',
             'channels' => ['instagram', 'tiktok'],

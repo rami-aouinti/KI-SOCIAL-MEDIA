@@ -111,7 +111,7 @@ class AiAssistedContentWorkflow
                 'status' => 'ready',
             ]);
 
-            $version = $this->contentVersionCreator->create($briefing, [
+            $version = $this->contentVersionCreator->create((int) $briefing->getKey(), [
                 ...$briefingData->toArray(),
                 'channels' => $idea->channels,
                 'scheduled_at' => $idea->planned_at->format('Y-m-d'),

@@ -48,12 +48,9 @@ class ContentRepositoryTest extends TestCase
         $lockedVersion = app(ContentVersionRepositoryInterface::class)
             ->lockForWorkflow($version->id, withReadinessRelations: true);
 
-        $this->assertTrue($lockedVersion->is($version));
-        $this->assertTrue($lockedVersion->relationLoaded('briefing'));
-        $this->assertTrue($lockedVersion->briefing->relationLoaded('contentIdea'));
-        $this->assertTrue(
-            $lockedVersion->briefing->contentIdea->relationLoaded('workAllocations'),
-        );
+        $this->assertSame($version->id, $lockedVersion->id);
+        $this->assertSame('person_a', $lockedVersion->responsiblePerson);
+        $this->assertSame(1, $lockedVersion->workAllocationCount);
     }
 
     public function test_approval_repository_matches_the_exact_version_hash_and_decision(): void
@@ -65,7 +62,7 @@ class ContentRepositoryTest extends TestCase
             'content_version_id' => $version->id,
             'reviewer' => 'Reviewer A',
             'decision' => ContentApprovalDecision::APPROVED,
-            'content_hash' => $version->content_hash,
+            'content_hash' => $version->contentHash,
             'comment' => 'First approval.',
             'reviewed_at' => Carbon::parse('2026-11-20 10:00:00'),
         ]);
@@ -94,7 +91,7 @@ class ContentRepositoryTest extends TestCase
         ));
     }
 
-    private function createVersion(): ContentVersion
+    private function createVersion(): ContentVersionRecord
     {
         $plan = WeeklyPlan::create([
             'week_start' => '2026-11-23',
@@ -132,7 +129,7 @@ class ContentRepositoryTest extends TestCase
             'status' => ContentBriefingStatus::DRAFT,
         ]);
 
-        return app(ContentVersionCreator::class)->create($briefing, [
+        return app(ContentVersionCreator::class)->create((int) $briefing->getKey(), [
             'hook' => 'Try these winter eyewear tips.',
             'body' => 'Keep your glasses clear with these simple habits.',
             'channel_variants' => [
