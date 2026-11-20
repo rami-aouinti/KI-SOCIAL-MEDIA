@@ -83,6 +83,7 @@ final class ContentVersionController extends Controller
         int $contentVersion,
         Request $request,
         ContentApprovalService $approvals,
+        AutomationEventPublisherInterface $automationEvents,
     ): JsonResponse {
         $validated = $request->validate([
             'comment' => ['required', 'string', 'min:3', 'max:5000'],
