@@ -13,10 +13,10 @@ Cette section distingue les fonctions présentes dans le dépôt des éléments 
 
 | Domaine | État |
 |---|---|
-| Planning de 5 idées (3 priorités + 2 réserves) | Service et tests présents |
+| Génération IA simulée du planning (3 priorités + 2 réserves) | Contrat, mock déterministe, orchestration, validation et tests présents |
 | Inspirations synthétiques | Modèle, migration et tests présents |
 | Affectations et capacité | Modèles, service et tests présents |
-| Briefing | Modèle, migration et tests présents |
+| Génération IA simulée du briefing et des variantes par canal | Contrat, mock déterministe, persistance, version et tests présents |
 | Versions immuables et hash SHA-256 | Service, modèle et tests présents |
 | Validation humaine | Service, historique des décisions et tests présents |
 | Handoff | Service simulé, payload JSON persistant, idempotence et tests présents |
@@ -47,7 +47,7 @@ Le service de capacité calcule la charge et émet des avertissements. Il ne cho
 
 ### Tatsächlicher Implementierungsstand
 
-Die Tabelle oben zeigt den überprüften Implementierungsstand. Planung, Kapazitätsberechnung, Briefing, unveränderliche Versionen, menschliche Freigabe, idempotente simulierte Übergabe und TXT-Wochenbericht sind im Repository implementiert und getestet. Reale Social-Media-Veröffentlichungen sowie Live-Trend- und Performance-Daten sind ausdrücklich nicht implementiert. Alle Demo-Referenzen und Medienkennungen sind synthetisch.
+Die Tabelle oben zeigt den überprüften Implementierungsstand. Die deterministische KI-Mock-Generierung für Wochenideen und Briefings, Kapazitätsberechnung, unveränderliche Versionen, menschliche Freigabe, idempotente simulierte Übergabe und TXT-Wochenbericht sind im Repository implementiert. Der Mock verwendet feste Testantworten mit begrenzten kontextbezogenen Textanpassungen; es gibt keinen echten LLM-Aufruf und keinen Netzwerkzugriff. Reale Social-Media-Veröffentlichungen sowie Live-Trend- und Performance-Daten sind ausdrücklich nicht implementiert. Alle Demo-Referenzen und Medienkennungen sind synthetisch.
 
 ---
 
@@ -511,13 +511,14 @@ Les temps de production, de variantes, de coordination et de validation doivent 
 
 ## 12. Génération IA : abstraction et transparence
 
-Le contenu est généré derrière un contrat applicatif, par exemple `AiContentGeneratorInterface`.
+La génération est maintenant exécutée derrière `AiContentGeneratorInterface`, implémentée par `MockAiContentGenerator` et orchestrée par `AiAssistedContentWorkflow`.
 
-- Une implémentation mock déterministe permet de faire fonctionner la démonstration sans clé API.
-- Le résultat doit respecter une structure attendue et être validé avant persistance.
-- Le fournisseur et le caractère simulé sont conservés dans les métadonnées de la version.
-- Une implémentation HTTP réelle pourra être ajoutée sans déplacer les règles de validation, de versioning ou d'approbation.
-- Les données synthétiques ne doivent jamais être présentées comme des observations réelles.
+- Le mock génère les cinq idées à partir du contexte structuré, puis un briefing complet et les variantes des canaux concernés.
+- Les réponses sont déterministes : ce sont des réponses de test fixes avec substitutions contextuelles limitées, pas une inférence par LLM.
+- La sortie est validée avant persistance par les validateurs du workflow et de `WeeklyPlanGenerator`.
+- Le fournisseur `mock`, le modèle `deterministic-fixture-v1` et `simulated=true` sont conservés dans les données du planning et dans le snapshot de version.
+- `AppServiceProvider` relie l'interface au mock. Un futur adaptateur OpenAI ou autre pourra remplacer ce binding sans déplacer les règles métier.
+- Aucune clé API, requête réseau ou donnée réelle n'est utilisée ; les inspirations et exemples restent synthétiques.
 
 Pourquoi cette abstraction ? Le workflow ne doit pas dépendre d'un fournisseur IA particulier. La génération est une dépendance remplaçable ; les règles métier restent sous le contrôle de l'application.
 
@@ -1060,13 +1061,14 @@ Produktionszeit, Kanalvarianten, Koordination und Freigabe müssen berücksichti
 
 ## 12. KI-Generierung: Abstraktion und Transparenz
 
-Die Inhaltsgenerierung wird hinter einem Anwendungskontrakt gekapselt, beispielsweise `AiContentGeneratorInterface`.
+Die Generierung läuft jetzt über `AiContentGeneratorInterface`, die Implementierung `MockAiContentGenerator` und die Orchestrierung `AiAssistedContentWorkflow`.
 
-- Eine deterministische Mock-Implementierung ermöglicht die Demo ohne API-Schlüssel.
-- Das Ergebnis muss dem erwarteten strukturierten Format entsprechen und vor dem Speichern validiert werden.
-- Anbieter und Simulationsstatus werden in den Metadaten der Version gespeichert.
-- Eine echte HTTP-Implementierung kann später ergänzt werden, ohne Validierungs-, Versions- oder Freigaberegeln zu verschieben.
-- Synthetische Daten dürfen niemals als reale Beobachtungen dargestellt werden.
+- Der Mock erzeugt aus dem strukturierten Kontext fünf Wochenideen sowie ein vollständiges Briefing mit kanalbezogenen Varianten.
+- Die Antworten sind deterministisch: feste Testantworten mit begrenzten kontextbezogenen Textanpassungen, keine echte LLM-Inferenz.
+- Die Ausgabe wird vor der Speicherung durch die Workflow- und Planungsvalidierung geprüft.
+- Anbieter `mock`, Modell `deterministic-fixture-v1` und `simulated=true` werden in den Plandaten und im Versions-Snapshot gespeichert.
+- `AppServiceProvider` bindet das Interface an den Mock. Ein späterer OpenAI- oder anderer Adapter kann diese Bindung ersetzen, ohne die Geschäftsregeln zu verschieben.
+- Es werden weder API-Schlüssel noch Netzwerkzugriffe oder echte Daten verwendet; Inspirationsquellen und Beispiele bleiben synthetisch.
 
 Warum diese Abstraktion? Der Workflow soll nicht von einem bestimmten KI-Anbieter abhängen. Die Generierung ist eine austauschbare Abhängigkeit; die Geschäftsregeln bleiben unter Kontrolle der Anwendung.
 
