@@ -6,7 +6,6 @@ namespace App\Http\Controllers;
 
 use App\Models\WeeklyPlan;
 use App\Services\WeeklyReportGenerator;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
