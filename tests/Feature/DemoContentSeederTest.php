@@ -41,13 +41,15 @@ class DemoContentSeederTest extends TestCase
         $this->assertCount(1, $version->handoffRecords);
         $this->assertSame(1, ContentVersion::query()->count());
         $this->assertSame(1, ContentHandoffRecord::query()->count());
+        $this->assertSame('mock', $plan->input_data['generation']['provider']);
+        $this->assertTrue($plan->input_data['generation']['simulated']);
     }
 
     public function test_dashboard_and_weekly_report_command_work_with_seeded_demo_data(): void
     {
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
 
-        $this->get('/')->assertOk()->assertSee('KI Social Media')->assertSee('Winter eyewear tips');
+        $this->get('/')->assertOk()->assertSee('KI Social Media')->assertSee('Winter eyewear tips')->assertSee('AI generation: simulated mock');
         $this->get('/weekly-plans/'.WeeklyPlan::query()->firstOrFail()->id.'/report')->assertOk();
 
         Storage::fake('local');
