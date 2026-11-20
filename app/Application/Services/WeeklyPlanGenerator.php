@@ -42,6 +42,8 @@ class WeeklyPlanGenerator
             'generation.provider' => ['required_with:generation', 'string', 'max:50'],
             'generation.simulated' => ['required_with:generation', 'boolean'],
             'generation.model' => ['nullable', 'string', 'max:100'],
+            'generation.duration_ms' => ['nullable', 'integer', 'min:0'],
+            'generation.cost_estimate' => ['nullable', 'numeric', 'min:0'],
             'capacity_limits' => ['required', 'array', 'min:1'],
             'capacity_limits.*' => ['required', 'integer', 'min:0'],
             'inspirations' => ['required', 'array', 'min:3'],

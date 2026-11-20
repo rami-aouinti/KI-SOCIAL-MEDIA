@@ -37,6 +37,8 @@ final class ContentVersionCreator
             'generation.provider' => ['required_with:generation', 'string', 'max:50'],
             'generation.simulated' => ['required_with:generation', 'boolean'],
             'generation.model' => ['nullable', 'string', 'max:100'],
+            'generation.duration_ms' => ['nullable', 'integer', 'min:0'],
+            'generation.cost_estimate' => ['nullable', 'numeric', 'min:0'],
         ])->validate();
 
         $versionData = ContentVersionData::fromValidatedArray($validated);
