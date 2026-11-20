@@ -6,6 +6,7 @@ namespace App\Transport\Http\Controllers\Api\V1;
 
 use App\Application\Services\WeeklyPlanGenerator;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Infrastructure\Queue\Jobs\DispatchN8nWebhook;
 use App\Transport\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -55,6 +56,12 @@ final class WeeklyPlanController extends Controller
     {
         $result = $generator->generate($request->all());
         $plan = $result['plan'];
+
+        DispatchN8nWebhook::dispatch('weekly_plan.created', [
+            'weekly_plan_id' => $plan->getKey(),
+            'week_start' => $plan->week_start?->toDateString(),
+            'content_ideas_count' => $plan->contentIdeas()->count(),
+        ]);
 
         return response()->json([
             'data' => $this->serializePlan($plan),
