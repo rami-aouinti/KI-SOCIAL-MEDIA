@@ -43,7 +43,7 @@ final class CapacityPlanner
             $allocatedMinutes = $allocationsByPerson[$personKey] ?? 0;
             $capacity = $capacityLimits[$personKey] ?? null;
 
-            if (! is_numeric($capacity) || (int) $capacity < 0) {
+            if (!is_numeric($capacity) || (int) $capacity < 0) {
                 $people[$personKey] = [
                     'allocated_minutes' => $allocatedMinutes,
                     'capacity_minutes' => null,
