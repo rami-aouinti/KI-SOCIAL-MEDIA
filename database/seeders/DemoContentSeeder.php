@@ -71,7 +71,7 @@ class DemoContentSeeder extends Seeder
         $briefing = $priority->briefing;
 
         if (! $briefing) {
-            $generated = app(AiAssistedContentWorkflow::class)->generateBriefing($priority);
+            $generated = app(AiAssistedContentWorkflow::class)->generateBriefing((int) $priority->getKey());
             $briefing = $generated['briefing'];
         }
 
