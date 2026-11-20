@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\WeeklyPlan;
+use App\Services\CapacityPlanner;
 use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    public function __invoke(CapacityPlanner $capacityPlanner): View
     {
         $plan = WeeklyPlan::query()
             ->with([
@@ -21,6 +22,8 @@ class DashboardController extends Controller
             ->latest('week_start')
             ->first();
 
-        return view('welcome', compact('plan'));
+        $capacity = $plan ? $capacityPlanner->analyze($plan) : null;
+
+        return view('welcome', compact('plan', 'capacity'));
     }
 }
