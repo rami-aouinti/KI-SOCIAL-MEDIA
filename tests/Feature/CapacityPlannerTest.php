@@ -9,6 +9,7 @@ use App\Models\ContentIdea;
 use App\Models\WeeklyPlan;
 use App\Services\CapacityPlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CapacityPlannerTest extends TestCase
@@ -62,7 +63,7 @@ class CapacityPlannerTest extends TestCase
         $plan->load('contentIdeas.workAllocations');
 
         $queries = 0;
-        \\Illuminate\\Support\\Facades\\DB::listen(static function () use (&$queries): void {
+        DB::listen(static function () use (&$queries): void {
             $queries++;
         });
 
