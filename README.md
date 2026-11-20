@@ -10,7 +10,7 @@ The goal is not to build a complete social-media management platform. The goal i
 
 | Timebox | Duration | Deliverable |
 |---|---:|---|
-| 00:00–00:30 | 30 min | Laravel project setup, environment, database and basic application structure |
+| 00:00–00:30 | 30 min | Laravel project setup, Docker/Sail environment, database and basic application structure |
 | 00:30–01:15 | 45 min | Eloquent models, migrations, persistence and basic CRUD |
 | 01:15–02:15 | 60 min | AI provider interface and content generation for selected channels |
 | 02:15–03:15 | 60 min | Review/approval workflow and business rules |
@@ -78,29 +78,32 @@ These are possible future improvements, not promises for the 5-hour delivery.
 
 ## 4. Technical approach and framework choice
 
-Use **Laravel as a single PHP monolith**. The framework provides the application foundation so implementation time can be spent on the actual content workflow and its business rules rather than rebuilding common web infrastructure.
+Use **Laravel as a single PHP monolith**. Run the application and its development tools in Docker so the project does not depend on PHP, Composer or Node.js versions installed on the host machine.
 
 ### Stack
 
 - PHP 8.4
-- Latest stable Laravel release compatible with the installed PHP version
+- Latest stable Laravel release compatible with PHP 8.4 (Laravel 13 is the target)
+- Laravel Sail / Docker Compose for the local development environment
+- Composer inside the PHP container
+- Node.js/npm inside the Sail environment only if frontend assets require it
 - Eloquent ORM
-- SQLite for lightweight local development
+- SQLite (file-based database; no database container needed)
 - Blade for server-rendered pages
 - Laravel routing and Form Request validation
 - Laravel service container for dependency injection
 - PHPUnit or Pest for automated tests
-- Docker Compose only if it can be configured within the initial 30-minute setup timebox; otherwise use the simplest working local environment
 
-### Why Laravel?
+### Why Laravel and Docker?
 
-- Routing, validation, database migrations and dependency injection are available out of the box.
+- Laravel provides routing, validation, database migrations and dependency injection out of the box.
 - Eloquent makes the small CRUD and persistence requirements quick to implement.
 - Blade provides a straightforward server-rendered interface without introducing a separate frontend application.
 - Laravel's testing tools make it practical to cover the critical workflow rules.
-- Its ecosystem is well suited to building this kind of web application quickly.
+- Docker/Sail provides a repeatable environment for the whole team and avoids host-machine version differences.
+- SQLite keeps the infrastructure small: we do not need a separate database service for this MVP.
 
-A framework is a pragmatic choice here: it supplies established infrastructure and conventions, while the application-specific value remains in the business logic. Symfony would also be technically suitable; Laravel is selected for this implementation to gain practical experience with its ecosystem.
+A framework is a pragmatic choice: it supplies established infrastructure and conventions, while the application-specific value remains in the business logic. Symfony would also be technically suitable; Laravel is selected for this implementation to gain practical experience with its ecosystem.
 
 ### Keep the implementation deliberately small
 
@@ -111,8 +114,38 @@ A framework is a pragmatic choice here: it supplies established infrastructure a
 - Use Form Requests for input validation where useful.
 - Do not add repositories, interfaces, packages or architectural layers without a concrete need.
 - Do not add Livewire or Inertia to the mandatory scope; Blade is sufficient for this MVP.
+- Do not add MySQL/PostgreSQL, Redis or extra containers unless a real requirement appears.
 
-## 5. Minimal domain model
+## 5. Docker-first local development
+
+Docker Desktop with the WSL2 backend is the expected local runtime on Windows/WSL. Docker Engine and the Docker Compose plugin must be available inside the terminal.
+
+Laravel Sail is the project's Docker-based development environment. After the Laravel skeleton is created, install Sail as a development dependency and generate its Compose configuration. Keep the Compose setup minimal: the Laravel application container only; use SQLite for persistence.
+
+### Expected daily commands
+
+Run these commands from the repository root after Sail has been installed:
+
+```bash
+# Start the application container
+./vendor/bin/sail up -d
+
+# Run Artisan commands
+./vendor/bin/sail artisan about
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan test
+
+# Run Composer inside the container
+./vendor/bin/sail composer install
+./vendor/bin/sail composer require vendor/package
+
+# Stop the environment
+./vendor/bin/sail down
+```
+
+Use `./vendor/bin/sail` rather than relying on globally installed PHP, Composer or Node. Do not commit secrets or a populated local SQLite database. Keep `.env.example` as the reproducible configuration template.
+
+## 6. Minimal domain model
 
 ### ContentIdea
 
@@ -150,7 +183,7 @@ A framework is a pragmatic choice here: it supplies established infrastructure a
 
 Keep the model smaller if implementation time requires it. Do not build a generic workflow engine.
 
-## 6. Critical business rules
+## 7. Critical business rules
 
 1. A draft must contain its required text and channel variants before it can enter review.
 2. Only a draft in `in_review` can be approved.
@@ -160,7 +193,7 @@ Keep the model smaller if implementation time requires it. Do not build a generi
 6. Handoff creates a local simulation record; it never calls a social-media publishing API.
 7. Repeating a handoff request with the same idempotency key must not create a second record.
 
-## 7. Acceptance criteria
+## 8. Acceptance criteria
 
 The MVP is considered complete when the following scenarios work:
 
@@ -177,7 +210,7 @@ The MVP is considered complete when the following scenarios work:
 
 At least the most important business rules (AT-03, AT-05, AT-06 and AT-07) must have automated tests. If time allows, cover all acceptance criteria.
 
-## 8. Suggested Laravel project structure
+## 9. Suggested Laravel project structure
 
 Follow Laravel conventions and keep the structure intentionally small:
 
@@ -205,21 +238,68 @@ tests/
 
 Do not create empty layers or interfaces without a concrete use.
 
-## 9. Local setup and run
+## 10. Clone and bootstrap
 
-The exact commands will be added once the Laravel skeleton and dependencies are created. The intended developer experience is:
+Clone the `master` branch:
 
-1. Clone the repository.
-2. Install Composer dependencies.
-3. Copy `.env.example` to `.env` and generate the application key.
-4. Configure the SQLite database.
-5. Run Laravel migrations and seeders.
-6. Start the Laravel development server.
-7. Open the application in a browser and follow the demo workflow.
+```bash
+git clone -b master https://github.com/rami-aouinti/KI-SOCIAL-MEDIA.git
+cd KI-SOCIAL-MEDIA
+```
 
-The mock AI provider must work without an API key so the demo remains reproducible.
+The repository currently contains the project plan. The Laravel application skeleton and Sail configuration are created during the first 30-minute setup timebox; they are not pre-generated in this documentation-only commit.
 
-## 10. Demo scenario
+Before starting, verify Docker is available:
+
+```bash
+docker --version
+docker compose version
+docker info
+```
+
+Bootstrap the Laravel skeleton using the PHP 8.4 Composer image, without requiring PHP or Composer on the host:
+
+```bash
+mkdir -p .bootstrap
+docker run --rm -u "$(id -u):$(id -g)" \
+  -v "$PWD/.bootstrap":/app -w /app \
+  laravelsail/php84-composer:latest \
+  composer create-project laravel/laravel .
+
+cp -a .bootstrap/. .
+rm -rf .bootstrap
+```
+
+Then install Sail and generate the Docker Compose configuration. Select no extra services (we use SQLite):
+
+```bash
+docker run --rm -u "$(id -u):$(id -g)" \
+  -v "$PWD":/var/www/html -w /var/www/html \
+  laravelsail/php84-composer:latest \
+  composer require laravel/sail --dev
+
+docker run --rm -u "$(id -u):$(id -g)" \
+  -v "$PWD":/var/www/html -w /var/www/html \
+  laravelsail/php84-composer:latest \
+  php artisan sail:install
+```
+
+After Sail generates its Compose file, use the project-local Sail executable:
+
+```bash
+cp .env.example .env
+mkdir -p database
+touch database/database.sqlite
+# Set DB_CONNECTION=sqlite in .env (remove/comment DB_HOST if present)
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan test
+```
+
+If a bootstrap command fails, stop and fix that step before continuing; do not spend the rest of the five-hour budget debugging optional infrastructure. Check the generated Compose file and `.env` before the first startup. Never commit `.env`, credentials, or the local SQLite database.
+
+## 11. Demo scenario
 
 Use fictional data for a local optician:
 
@@ -239,7 +319,7 @@ Demo sequence:
 7. Trigger the same handoff again and show that no duplicate is created.
 8. Edit the content and show that the old approval is no longer valid.
 
-## 11. Evidence and implementation notes
+## 12. Evidence and implementation notes
 
 At the end of the timebox, document:
 
@@ -250,9 +330,9 @@ At the end of the timebox, document:
 - A few screenshots or a short demo recording, if available.
 - Known limitations and sensible next steps.
 
-## 12. Definition of done
+## 13. Definition of done
 
-- [ ] Application starts locally from documented instructions.
+- [ ] Application starts locally using Docker/Sail from documented instructions.
 - [ ] A user can complete the idea-to-handoff demo.
 - [ ] Approval and handoff rules are enforced on the server side.
 - [ ] Duplicate handoffs are prevented.
