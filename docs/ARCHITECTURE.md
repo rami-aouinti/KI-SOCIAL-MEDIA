@@ -7,6 +7,29 @@
 
 Ce document décrit l'architecture cible, le modèle de données, les règles métier et les raisons des choix. Il constitue une décision de conception pour le MVP, pas une affirmation que toutes les fonctions sont déjà implémentées.
 
+## État réel de l'implémentation / État vérifié
+
+Cette section distingue les fonctions présentes dans le dépôt des éléments qui restent une conception ou une simulation.
+
+| Domaine | État |
+|---|---|
+| Planning de 5 idées (3 priorités + 2 réserves) | Service et tests présents |
+| Inspirations synthétiques | Modèle, migration et tests présents |
+| Affectations et capacité | Modèles, service et tests présents |
+| Briefing | Modèle, migration et tests présents |
+| Versions immuables et hash SHA-256 | Service, modèle et tests présents |
+| Validation humaine | Service, historique des décisions et tests présents |
+| Handoff | Service simulé, payload JSON persistant, idempotence et tests présents |
+| Rapport hebdomadaire TXT | Génération depuis la base et export sur le disque local, tests présents |
+| Publication sur les réseaux sociaux | Non implémentée ; aucune publication réelle |
+| Inspirations / métriques en direct | Non implémentées ; données de démonstration synthétiques |
+
+Le nom `content_version_approvals` correspond à l'historique des validations et `content_handoff_records` aux transmissions simulées. Le rapport est un fichier texte généré par `WeeklyReportGenerator`, pas une statistique codée en dur.
+
+### Tatsächlicher Implementierungsstand
+
+Die Tabelle oben zeigt den überprüften Implementierungsstand. Planung, Kapazitätsberechnung, Briefing, unveränderliche Versionen, menschliche Freigabe, idempotente simulierte Übergabe und TXT-Wochenbericht sind im Repository implementiert und getestet. Reale Social-Media-Veröffentlichungen sowie Live-Trend- und Performance-Daten sind ausdrücklich nicht implementiert. Alle Demo-Referenzen und Medienkennungen sind synthetisch.
+
 ---
 
 # Partie I — Français
