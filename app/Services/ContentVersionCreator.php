@@ -7,11 +7,17 @@ namespace App\Services;
 use App\DTOs\ContentVersionData;
 use App\Models\ContentBriefing;
 use App\Models\ContentVersion;
+use App\Repositories\Contracts\ContentVersionRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ContentVersionCreator
 {
+    public function __construct(
+        private readonly ContentVersionRepositoryInterface $versions,
+    ) {
+    }
+
     /**
      * Create an immutable content snapshot for review and later approval.
      *
@@ -38,13 +44,9 @@ class ContentVersionCreator
         $versionData = ContentVersionData::fromValidatedArray($validated);
 
         return DB::transaction(function () use ($briefing, $versionData): ContentVersion {
-            $lockedBriefing = ContentBriefing::query()
-                ->whereKey($briefing->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            $nextVersion = ((int) $lockedBriefing->versions()
-                ->max('version_number')) + 1;
+            $lockedBriefing = $this->versions->lockBriefingForVersionCreation(
+                (int) $briefing->getKey()
+            );
 
             $snapshot = $versionData->snapshot();
 
@@ -56,8 +58,7 @@ class ContentVersionCreator
                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             );
 
-            return $lockedBriefing->versions()->create([
-                'version_number' => $nextVersion,
+            return $this->versions->createNextForBriefing($lockedBriefing, [
                 'snapshot' => $snapshot,
                 'media_reference' => $versionData->mediaReference,
                 'channels' => $versionData->channels,
