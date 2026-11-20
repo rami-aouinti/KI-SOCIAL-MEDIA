@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Providers;
 
 use App\Application\Contracts\ContentBriefingWriterInterface;
+use App\Application\Contracts\DashboardDataSourceInterface;
 use App\Application\Contracts\WeeklyPlanWriterInterface;
 use App\Application\Contracts\WeeklyReportDataSourceInterface;
 use App\Application\Contracts\WeeklyReportStorageInterface;
@@ -16,6 +17,7 @@ use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use App\Domain\Transactions\TransactionManagerInterface;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use App\Infrastructure\Events\LaravelWorkflowEventPublisher;
+use App\Infrastructure\Persistence\Eloquent\EloquentDashboardDataSource;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentApprovalRepository;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentBriefingWriter;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentHandoffRepository;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AiContentGeneratorInterface::class, MockAiContentGenerator::class);
         $this->app->bind(WeeklyPlanWriterInterface::class, EloquentWeeklyPlanWriter::class);
         $this->app->bind(ContentBriefingWriterInterface::class, EloquentContentBriefingWriter::class);
+        $this->app->bind(DashboardDataSourceInterface::class, EloquentDashboardDataSource::class);
         $this->app->bind(WeeklyReportDataSourceInterface::class, EloquentWeeklyReportDataSource::class);
         $this->app->bind(WeeklyReportStorageInterface::class, LaravelWeeklyReportStorage::class);
         $this->app->bind(TransactionManagerInterface::class, LaravelTransactionManager::class);

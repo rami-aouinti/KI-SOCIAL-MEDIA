@@ -34,112 +34,106 @@
             <h1>KI Social Media</h1>
             <div class="muted">Weekly editorial planning, human approval and simulated handoff.</div>
         </div>
-        @if($plan)
-            <a class="button" href="{{ route('weekly-plans.report', $plan) }}">Download weekly TXT report</a>
+        @if($dashboard->plan)
+            <a class="button" href="{{ route('weekly-plans.report', $dashboard->plan['id']) }}">Download weekly TXT report</a>
         @endif
     </header>
 
-    @if(!$plan)
+    @if(!$dashboard->plan)
         <section class="card">
             <h2>No demo plan found</h2>
             <p class="muted">Run <code>php artisan db:seed --class=DemoContentSeeder</code> to load the synthetic demonstration data.</p>
         </section>
     @else
-        @php
-            $demoIdea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
-            $demoVersion = $demoIdea?->briefing?->versions?->sortByDesc('version_number')->first();
-            $demoApproval = $demoVersion?->approvals?->sortByDesc('reviewed_at')->first();
-            $demoHandoff = $demoVersion?->handoffRecords?->first();
-        @endphp
-
-        <div class="eyebrow">Week starting {{ $plan->week_start->format('d M Y') }} · {{ $plan->seasonal_occasion }}</div>
-        @if(data_get($plan->input_data, 'generation.simulated'))
-            <p><span class="pill">AI generation: simulated mock · {{ data_get($plan->input_data, 'generation.model') }}</span></p>
+        @php($plan = $dashboard->plan)
+        <div class="eyebrow">Week starting {{ $plan['week_start'] }} · {{ $plan['seasonal_occasion'] }}</div>
+        @if($plan['generation_simulated'])
+            <p><span class="pill">AI generation: simulated mock · {{ $plan['generation_model'] }}</span></p>
         @endif
         <div class="grid">
-            <section class="card"><div class="eyebrow">Editorial ideas</div><div class="metric">{{ $plan->contentIdeas->count() }}</div><div class="muted">{{ $plan->contentIdeas->where('priority_type.value', 'priority')->count() }} priorities · {{ $plan->contentIdeas->where('priority_type.value', 'reserve')->count() }} reserves</div></section>
-            <section class="card"><div class="eyebrow">Inspiration references</div><div class="metric">{{ $plan->inspirations->count() }}</div><div class="muted">Synthetic references, no live trend claims</div></section>
-            <section class="card"><div class="eyebrow">Approval workflow</div><div class="metric">{{ $demoHandoff ? 'Handed off' : 'In progress' }}</div><div class="muted">Human approval required before handoff</div></section>
+            <section class="card"><div class="eyebrow">Editorial ideas</div><div class="metric">{{ count($plan['ideas']) }}</div><div class="muted">{{ $plan['priority_count'] }} priorities · {{ $plan['reserve_count'] }} reserves</div></section>
+            <section class="card"><div class="eyebrow">Inspiration references</div><div class="metric">{{ count($plan['inspirations']) }}</div><div class="muted">Synthetic references, no live trend claims</div></section>
+            <section class="card"><div class="eyebrow">Approval workflow</div><div class="metric">{{ $plan['has_handoff'] ? 'Handed off' : 'In progress' }}</div><div class="muted">Human approval required before handoff</div></section>
         </div>
 
         <section class="section">
             <h2>Team capacity</h2>
-            @if($capacity['people'] === [])
+            @if($dashboard->capacity['people'] === [])
                 <p class="empty-state">No team capacity or work allocations have been recorded for this plan.</p>
             @else
-            <div class="grid">
-                @foreach($capacity['people'] as $person => $details)
-                    <div class="card">
-                        <div class="eyebrow">{{ $person }}</div>
-                        <div class="metric">{{ $details['allocated_minutes'] }}<span class="muted" style="font-size:15px"> / {{ $details['capacity_minutes'] ?? '—' }} min</span></div>
-                        <div class="muted">{{ $details['is_over_capacity'] ? 'Over capacity by '.$details['exceeded_by_minutes'].' min' : ($details['remaining_minutes'] ?? 0).' min remaining' }}</div>
-                    </div>
+                <div class="grid">
+                    @foreach($dashboard->capacity['people'] as $person => $details)
+                        <div class="card">
+                            <div class="eyebrow">{{ $person }}</div>
+                            <div class="metric">{{ $details['allocated_minutes'] }}<span class="muted" style="font-size:15px"> / {{ $details['capacity_minutes'] ?? '—' }} min</span></div>
+                            <div class="muted">{{ $details['is_over_capacity'] ? 'Over capacity by '.$details['exceeded_by_minutes'].' min' : ($details['remaining_minutes'] ?? 0).' min remaining' }}</div>
+                        </div>
+                    @endforeach
+                </div>
+                @foreach($dashboard->capacity['warnings'] as $warning)
+                    <p class="warning">{{ $warning['message'] }}</p>
                 @endforeach
-            </div>
-            @foreach($capacity['warnings'] as $warning)
-                <p class="warning">{{ $warning['message'] }}</p>
-            @endforeach
             @endif
         </section>
 
         <section class="section">
             <h2>Editorial plan</h2>
-            @if($plan->contentIdeas->isEmpty())
+            @if($plan['ideas'] === [])
                 <p class="empty-state">No editorial ideas have been saved for this week yet.</p>
             @else
-            <div class="ideas">
-                @foreach($plan->contentIdeas->sortBy('planned_at') as $idea)
-                    <article class="idea">
-                        <span class="pill">{{ $idea->priority_type->value }}</span>
-                        <span class="status">{{ str_replace('_', ' ', $idea->status->value) }}</span>
-                        <h3>{{ $idea->title }}</h3>
-                        <div class="meta">{{ $idea->planned_at->format('D, d M') }} · {{ implode(', ', $idea->channels) }}</div>
-                        <div class="meta">{{ $idea->responsible_person }} · {{ $idea->estimated_minutes }} min</div>
-                        <p class="meta">{{ $idea->selection_reason }}</p>
-                        @if($idea->briefing)
-                            <span class="status">Briefing: {{ str_replace('_', ' ', $idea->briefing->status->value) }}</span>
-                        @else
-                            <span class="meta">No briefing created</span>
-                        @endif
-                    </article>
-                @endforeach
-            </div>
+                <div class="ideas">
+                    @foreach($plan['ideas'] as $idea)
+                        <article class="idea">
+                            <span class="pill">{{ $idea['priority'] }}</span>
+                            <span class="status">{{ $idea['status'] }}</span>
+                            <h3>{{ $idea['title'] }}</h3>
+                            <div class="meta">{{ $idea['planned_at'] }} · {{ implode(', ', $idea['channels']) }}</div>
+                            <div class="meta">{{ $idea['responsible_person'] }} · {{ $idea['estimated_minutes'] }} min</div>
+                            <p class="meta">{{ $idea['selection_reason'] }}</p>
+                            @if($idea['briefing_status'])
+                                <span class="status">Briefing: {{ str_replace('_', ' ', $idea['briefing_status']) }}</span>
+                            @else
+                                <span class="meta">No briefing created</span>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
             @endif
         </section>
 
-        @if($demoIdea?->briefing)
+        @if($plan['featured'])
             <section class="section">
-                <h2>Featured briefing · {{ $demoIdea->title }}</h2>
+                <h2>Featured briefing · {{ $plan['featured']['title'] }}</h2>
                 <article class="card">
                     <div class="eyebrow">AI-generated demo briefing · human review required</div>
                     <div class="eyebrow">Hook</div>
-                    <p>{{ $demoIdea->briefing->hook }}</p>
+                    <p>{{ $plan['featured']['briefing']['hook'] }}</p>
                     <div class="eyebrow">Production plan</div>
-                    <p class="muted">{{ $demoIdea->briefing->filming_plan }}</p>
+                    <p class="muted">{{ $plan['featured']['briefing']['filming_plan'] }}</p>
                     <div class="eyebrow">Channel variants</div>
-                    @foreach(($demoVersion?->snapshot['channel_variants'] ?? []) as $channel => $variant)
+                    @foreach($plan['featured']['channel_variants'] as $channel => $variant)
                         <p><strong>{{ ucfirst($channel) }}</strong><br>{{ $variant['text'] }}</p>
                     @endforeach
-                    <div class="meta">Approval: {{ $demoApproval?->decision?->value ?? 'Not recorded' }} · Handoff: {{ $demoHandoff?->status ?? 'Not handed off' }}</div>
+                    <div class="meta">Approval: {{ $plan['featured']['approval'] }} · Handoff: {{ $plan['featured']['handoff'] }}</div>
                 </article>
             </section>
         @endif
 
         <section class="section">
             <h2>Inspiration references</h2>
-            @if($plan->inspirations->isEmpty())
+            @if($plan['inspirations'] === [])
                 <p class="empty-state">No inspiration references have been saved for this week yet.</p>
             @else
-            <div class="inspirations">
-                @foreach($plan->inspirations as $reference)
-                    <article class="card inspiration">
-                        <strong>{{ ucfirst($reference->channel) }}</strong>
-                        <div class="muted">{{ $reference->source_id }}</div>
-                        <p>{{ $reference->description }}</p>
-                        <span class="muted">Metrics: {{ $reference->metrics ? 'provided' : 'unknown / not provided' }}</span>
-                    </article>
-                @endforeach
-            </div>
+                <div class="inspirations">
+                    @foreach($plan['inspirations'] as $reference)
+                        <article class="card inspiration">
+                            <strong>{{ $reference['channel'] }}</strong>
+                            <div class="muted">{{ $reference['source_id'] }}</div>
+                            <p>{{ $reference['description'] }}</p>
+                            <span class="muted">Metrics: {{ $reference['has_metrics'] ? 'provided' : 'unknown / not provided' }}</span>
+                        </article>
+                    @endforeach
+                </div>
             @endif
         </section>
     @endif
