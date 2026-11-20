@@ -45,6 +45,11 @@ class AiAssistedContentWorkflowTest extends TestCase
         $this->assertSame('mock', $plan->input_data['generation']['provider']);
         $this->assertTrue($plan->input_data['generation']['simulated']);
         $this->assertTrue($result['capacity_report']['within_capacity']);
+        $workTypes = $plan->contentIdeas->flatMap->workAllocations->pluck('work_type')->all();
+        $this->assertContains('production', $workTypes);
+        $this->assertContains('variants', $workTypes);
+        $this->assertContains('coordination', $workTypes);
+        $this->assertContains('approval', $workTypes);
     }
 
     public function test_mock_ai_generates_a_complete_briefing_and_immutable_version_for_human_review(): void
