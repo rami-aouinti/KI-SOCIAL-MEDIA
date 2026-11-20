@@ -31,6 +31,27 @@ class WeeklyReportGeneratorTest extends TestCase
         $this->assertStringContainsString('Mesures : Inconnues / non fournies', $report);
     }
 
+    public function test_report_reuses_preloaded_plan_relations_without_additional_queries(): void
+    {
+        $plan = $this->createPlanWithIdea();
+        $plan->load([
+            'inspirations',
+            'contentIdeas.workAllocations',
+            'contentIdeas.briefing.versions.approvals',
+            'contentIdeas.briefing.versions.handoffRecords',
+        ]);
+
+        $queryCount = 0;
+        DB::listen(function () use (&$queryCount): void {
+            $queryCount++;
+        });
+
+        $report = app(WeeklyReportGenerator::class)->generate($plan);
+
+        $this->assertStringContainsString('Winter eyewear tips', $report);
+        $this->assertSame(0, $queryCount);
+    }
+
     public function test_report_is_exported_as_a_text_file_on_the_local_disk(): void
     {
         Storage::fake('local');
