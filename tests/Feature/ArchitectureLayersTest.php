@@ -30,7 +30,7 @@ class ArchitectureLayersTest extends TestCase
     public function test_domain_has_no_framework_or_persistence_dependencies(): void
     {
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(app_path('Domain'), \\FilesystemIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator(app_path('Domain'), \FilesystemIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $file) {
