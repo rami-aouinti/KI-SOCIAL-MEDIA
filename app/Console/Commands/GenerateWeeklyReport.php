@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use App\\Models\\WeeklyPlan;
-use App\\Services\\WeeklyReportGenerator;
-use Illuminate\\Console\\Command;
+use App\Models\WeeklyPlan;
+use App\Services\WeeklyReportGenerator;
+use Illuminate\Console\Command;
 
 class GenerateWeeklyReport extends Command
 {
