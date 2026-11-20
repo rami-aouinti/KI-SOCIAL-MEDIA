@@ -111,7 +111,7 @@ class AiAssistedContentWorkflow
     private function generationMetadata(int $startedAt): array
     {
         return [
-            ... (new GenerationMetadataData(
+            ...(new GenerationMetadataData(
                 provider: 'mock',
                 simulated: true,
                 model: 'deterministic-fixture-v1',
