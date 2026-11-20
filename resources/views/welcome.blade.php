@@ -18,9 +18,12 @@
         .idea h3{margin:9px 0 6px;font-size:16px}.meta{font-size:13px;color:#64748b;line-height:1.7}
         .status{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#246b50;background:#e8f6ef;border-radius:99px;padding:5px 8px}
         .warning{color:#95620b;background:#fff6df;padding:12px 14px;border-radius:10px;font-size:13px}
-        .inspirations{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.inspiration{font-size:13px;line-height:1.6}
-        footer{margin-top:30px;color:#718096;font-size:12px}
-        @media(max-width:760px){.grid,.ideas,.inspirations{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.shell{padding:28px 16px}}
+        .empty-state{border:1px dashed #cbd5e1;border-radius:12px;padding:18px;color:#64748b;font-size:14px;background:#ffffff80}
+        .inspirations{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.inspiration{font-size:13px;line-height:1.6}
+        .card,.idea{min-width:0;overflow-wrap:anywhere}.meta{overflow-wrap:anywhere}
+        footer{margin-top:30px;color:#718096;font-size:12px;line-height:1.6}
+        @media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.inspirations{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        @media(max-width:640px){.grid,.ideas,.inspirations{grid-template-columns:minmax(0,1fr)}.top{align-items:flex-start;flex-direction:column}.shell{padding:28px 16px 48px}h1{font-size:28px}.button{max-width:100%;text-align:center}}
     </style>
 </head>
 <body>
@@ -43,8 +46,6 @@
         </section>
     @else
         @php
-            $priorities = $plan->contentIdeas->where('priority_type.value', 'priority');
-            $reserves = $plan->contentIdeas->where('priority_type.value', 'reserve');
             $demoIdea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
             $demoVersion = $demoIdea?->briefing?->versions?->sortByDesc('version_number')->first();
             $demoApproval = $demoVersion?->approvals?->sortByDesc('reviewed_at')->first();
@@ -56,13 +57,16 @@
             <p><span class="pill">AI generation: simulated mock · {{ data_get($plan->input_data, 'generation.model') }}</span></p>
         @endif
         <div class="grid">
-            <section class="card"><div class="eyebrow">Editorial ideas</div><div class="metric">{{ $plan->contentIdeas->count() }}</div><div class="muted">3 priorities · 2 reserves</div></section>
+            <section class="card"><div class="eyebrow">Editorial ideas</div><div class="metric">{{ $plan->contentIdeas->count() }}</div><div class="muted">{{ $plan->contentIdeas->where('priority_type.value', 'priority')->count() }} priorities · {{ $plan->contentIdeas->where('priority_type.value', 'reserve')->count() }} reserves</div></section>
             <section class="card"><div class="eyebrow">Inspiration references</div><div class="metric">{{ $plan->inspirations->count() }}</div><div class="muted">Synthetic references, no live trend claims</div></section>
             <section class="card"><div class="eyebrow">Approval workflow</div><div class="metric">{{ $demoHandoff ? 'Handed off' : 'In progress' }}</div><div class="muted">Human approval required before handoff</div></section>
         </div>
 
         <section class="section">
             <h2>Team capacity</h2>
+            @if($capacity['people'] === [])
+                <p class="empty-state">No team capacity or work allocations have been recorded for this plan.</p>
+            @else
             <div class="grid">
                 @foreach($capacity['people'] as $person => $details)
                     <div class="card">
@@ -75,24 +79,32 @@
             @foreach($capacity['warnings'] as $warning)
                 <p class="warning">{{ $warning['message'] }}</p>
             @endforeach
+            @endif
         </section>
 
         <section class="section">
             <h2>Editorial plan</h2>
+            @if($plan->contentIdeas->isEmpty())
+                <p class="empty-state">No editorial ideas have been saved for this week yet.</p>
+            @else
             <div class="ideas">
                 @foreach($plan->contentIdeas->sortBy('planned_at') as $idea)
                     <article class="idea">
                         <span class="pill">{{ $idea->priority_type->value }}</span>
+                        <span class="status">{{ str_replace('_', ' ', $idea->status->value) }}</span>
                         <h3>{{ $idea->title }}</h3>
                         <div class="meta">{{ $idea->planned_at->format('D, d M') }} · {{ implode(', ', $idea->channels) }}</div>
                         <div class="meta">{{ $idea->responsible_person }} · {{ $idea->estimated_minutes }} min</div>
                         <p class="meta">{{ $idea->selection_reason }}</p>
                         @if($idea->briefing)
-                            <span class="status">Briefing ready</span>
+                            <span class="status">Briefing: {{ str_replace('_', ' ', $idea->briefing->status->value) }}</span>
+                        @else
+                            <span class="meta">No briefing created</span>
                         @endif
                     </article>
                 @endforeach
             </div>
+            @endif
         </section>
 
         @if($demoIdea?->briefing)
@@ -115,6 +127,9 @@
 
         <section class="section">
             <h2>Inspiration references</h2>
+            @if($plan->inspirations->isEmpty())
+                <p class="empty-state">No inspiration references have been saved for this week yet.</p>
+            @else
             <div class="inspirations">
                 @foreach($plan->inspirations as $reference)
                     <article class="card inspiration">
@@ -125,6 +140,7 @@
                     </article>
                 @endforeach
             </div>
+            @endif
         </section>
     @endif
 
