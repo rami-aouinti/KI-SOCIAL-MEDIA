@@ -4,8 +4,4 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-enum ContentBriefingStatus: string
-{
-    case DRAFT = 'draft';
-    case READY = 'ready';
-}
+class_alias(\App\Domain\Shared\Enums\ContentBriefingStatus::class, __NAMESPACE__.'\\ContentBriefingStatus');
