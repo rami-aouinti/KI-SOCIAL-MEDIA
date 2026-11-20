@@ -8,14 +8,11 @@ use App\Events\ContentApproved;
 use App\Events\ContentHandedOff;
 use App\Events\ContentRejected;
 use App\Jobs\RefreshWeeklyReportForContentVersion;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ContentWorkflowEventsTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function test_approval_event_queues_a_weekly_report_refresh(): void
     {
         $this->assertQueuesReportRefresh(new ContentApproved(101));
