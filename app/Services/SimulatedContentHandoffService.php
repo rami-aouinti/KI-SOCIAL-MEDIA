@@ -2,25 +2,30 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\\Services;
 
-use App\Enums\ContentApprovalDecision;
-use App\Enums\ContentVersionStatus;
-use App\Models\ContentHandoffRecord;
-use App\Models\ContentVersion;
-use App\Models\ContentVersionApproval;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use App\\Enums\\ContentApprovalDecision;
+use App\\Enums\\ContentVersionStatus;
+use App\\Models\\ContentHandoffRecord;
+use App\\Models\\ContentVersion;
+use App\\Models\\ContentVersionApproval;
+use Illuminate\\Support\\Carbon;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Validation\\ValidationException;
 use LogicException;
 
 class SimulatedContentHandoffService
 {
+    public function __construct(
+        private readonly ContentVersionReadinessValidator $readinessValidator,
+    ) {
+    }
+
     public function handoff(ContentVersion $version): ContentHandoffRecord
     {
         return DB::transaction(function () use ($version): ContentHandoffRecord {
             $locked = ContentVersion::query()
-                ->with('briefing.contentIdea')
+                ->with('briefing.contentIdea.workAllocations')
                 ->lockForUpdate()
                 ->findOrFail($version->id);
 
@@ -50,36 +55,10 @@ class SimulatedContentHandoffService
                 ]);
             }
 
+            $this->readinessValidator->assertReady($locked);
+
             $snapshot = $locked->snapshot ?? [];
             $idea = $locked->briefing?->contentIdea;
-            $errors = [];
-
-            if (blank($locked->media_reference)) {
-                $errors['media_reference'] = 'A media reference is required for handoff.';
-            }
-
-            if (empty($locked->channels)) {
-                $errors['channels'] = 'At least one target channel is required.';
-            }
-
-            if (! $locked->scheduled_at) {
-                $errors['scheduled_at'] = 'A scheduled date is required.';
-            }
-
-            if (! $idea || blank($idea->responsible_person)) {
-                $errors['responsible_person'] = 'A responsible person is required.';
-            }
-
-            foreach ($locked->channels ?? [] as $channel) {
-                if (blank($snapshot['channel_variants'][$channel]['text'] ?? null)) {
-                    $errors['channel_variants'] = "A text variant is required for channel: {$channel}.";
-                    break;
-                }
-            }
-
-            if ($errors !== []) {
-                throw ValidationException::withMessages($errors);
-            }
 
             $payload = [
                 'mode' => 'simulated',
