@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Providers;
 
+use App\Application\Contracts\AutomationEventPublisherInterface;
 use App\Application\Contracts\ContentBriefingWriterInterface;
 use App\Application\Contracts\DashboardDataSourceInterface;
 use App\Application\Contracts\WeeklyPlanWriterInterface;
@@ -16,6 +17,7 @@ use App\Domain\Repositories\ContentHandoffRepositoryInterface;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use App\Domain\Transactions\TransactionManagerInterface;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
+use App\Infrastructure\Automation\QueuedN8nAutomationEventPublisher;
 use App\Infrastructure\Events\LaravelWorkflowEventPublisher;
 use App\Infrastructure\Persistence\Eloquent\EloquentDashboardDataSource;
 use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentApprovalRepository;
@@ -38,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(AiContentGeneratorInterface::class, MockAiContentGenerator::class);
+        $this->app->bind(AutomationEventPublisherInterface::class, QueuedN8nAutomationEventPublisher::class);
         $this->app->bind(WeeklyPlanWriterInterface::class, EloquentWeeklyPlanWriter::class);
         $this->app->bind(ContentBriefingWriterInterface::class, EloquentContentBriefingWriter::class);
         $this->app->bind(DashboardDataSourceInterface::class, EloquentDashboardDataSource::class);
