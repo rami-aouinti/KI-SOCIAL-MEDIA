@@ -7,6 +7,7 @@ namespace App\Infrastructure\Queue\Jobs;
 use App\Application\Services\WeeklyReportGenerator;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -20,6 +21,21 @@ final class RefreshWeeklyReportForContentVersion implements ShouldBeUnique, Shou
     use SerializesModels;
 
     public int $tries = 3;
+
+    public int $timeout = 60;
+
+    public int $uniqueFor = 300;
+
+    /** @return array<int, int> */
+    public function backoff(): array
+    {
+        return [10, 30, 90];
+    }
+
+    public function uniqueId(): string
+    {
+        return 'weekly-report-refresh:'.$this->contentVersionId;
+    }
 
     public function __construct(public readonly int $contentVersionId) {}
 
