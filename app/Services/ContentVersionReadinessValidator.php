@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\\Services;
+namespace App\Services;
 
-use App\\Models\\ContentVersion;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\ContentVersion;
+use Illuminate\Validation\ValidationException;
 
 class ContentVersionReadinessValidator
 {
