@@ -26,7 +26,7 @@ Le projet privilégie un workflow métier complet et testable plutôt qu'une pla
 - Rapport hebdomadaire TXT généré depuis les données enregistrées.
 - Page d'accueil de démonstration : planning, inspirations, capacités, briefing, validation et handoff.
 
-Les transmissions ne contactent aucune API externe. Le statut `handed_off` signifie uniquement que le payload a été enregistré dans la simulation.
+Les transmissions ne contactent aucune API externe. Le statut `handed_off` signifie uniquement que le payload a été enregistré dans la simulation. Le mock IA utilise des réponses de test déterministes, validées avant stockage ; il ne contacte aucun modèle externe.
 
 ## 3. Architecture et choix
 
@@ -73,7 +73,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ./vendor/bin/sail artisan weekly-report:generate
 ```
 
-Le seeder passe par le générateur IA simulé pour créer le planning et le briefing avant la validation humaine et le handoff. Après une exécution complète, le relancer ne crée pas de doublons de planning, de version, d'approbation ou de transmission. Le seeder n'est toutefois pas un mécanisme de reprise transactionnelle si l'exécution est interrompue au milieu du workflow. Les données de démonstration utilisent la semaine du 23 novembre 2026 et des identifiants/médias fictifs.
+Le seeder passe par le générateur IA simulé pour créer le planning et le briefing avant la validation humaine et le handoff. Après une exécution complète, le relancer ne crée pas de doublons de planning, de version, d'approbation ou de transmission. Le seeder n'est toutefois pas un mécanisme de reprise transactionnelle si l'exécution est interrompue au milieu du workflow. Si une ancienne démo avait déjà créé la semaine du 23 novembre 2026 avant l'ajout du générateur IA, elle reste inchangée pour préserver l'idempotence ; pour voir le nouveau scénario sur une base locale jetable, réinitialiser d'abord la base avec `./vendor/bin/sail artisan migrate:fresh` (cette commande supprime toutes les données), puis relancer le seeder. Les données de démonstration utilisent la semaine du 23 novembre 2026 et des identifiants/médias fictifs.
 
 Le rapport est écrit dans `storage/app/private/weekly-reports/`. La page d'accueil propose également un téléchargement direct du rapport.
 
