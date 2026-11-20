@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers;
+namespace App\Transport\Http\Controllers;
 
 use App\Models\WeeklyPlan;
 use App\Services\WeeklyReportGenerator;

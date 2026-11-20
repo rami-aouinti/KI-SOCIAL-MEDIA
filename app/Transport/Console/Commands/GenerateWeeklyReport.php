@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace App\Transport\Console\Commands;
 
 use App\Models\WeeklyPlan;
 use App\Services\WeeklyReportGenerator;
