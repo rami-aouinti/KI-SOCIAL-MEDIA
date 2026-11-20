@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Repositories;
 
-use App\Models\ContentBriefing;
-use App\Models\ContentVersion;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 
 interface ContentVersionRepositoryInterface
 {
