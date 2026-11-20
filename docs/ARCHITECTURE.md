@@ -1165,3 +1165,21 @@ Die Reihenfolge schützt den Zeitrahmen und stellt sicher, dass der Kernworkflow
 8. Vier verpflichtende Tests, Demo-Nachweise und README-Abgleich.
 
 Wenn das Zeitlimit erreicht ist, werden optionale UI-Verbesserungen und Erweiterungen gestrichen. Die Abgabe dokumentiert klar, welche Punkte implementiert, simuliert oder nur konzipiert wurden.
+
+
+## 18. Repository layer / Couche de persistance
+
+The application services own the use cases, business rules and database transactions. They depend on repository contracts instead of issuing persistence queries directly.
+
+| Contract | Eloquent implementation | Responsibility |
+|---|---|---|
+| `ContentVersionRepositoryInterface` | `EloquentContentVersionRepository` | Lock workflow versions, lock briefings during version creation and create the next version number. |
+| `ContentApprovalRepositoryInterface` | `EloquentContentApprovalRepository` | Record review decisions and find the latest approval matching the exact version hash. |
+| `ContentHandoffRepositoryInterface` | `EloquentContentHandoffRepository` | Find an existing handoff for idempotent retries and persist a handoff record. |
+
+The bindings are registered in `AppServiceProvider`. This keeps the services independent from Eloquent query details and leaves room for focused repository tests or a different persistence adapter if the application ever needs one.
+
+**Transaction boundary:** transactions remain in the application services (`ContentVersionCreator`, `ContentApprovalService` and `SimulatedContentHandoffService`). Repository methods that use `lockForUpdate()` are called from inside those transactions. The repositories do not start nested business transactions and do not decide workflow status transitions.
+
+**Scope decision:** repositories are introduced only around persistence that is shared by important workflows or contains non-trivial query logic. Simple read-only Eloquent relations remain on the models; there is no repository class for every model by default. This avoids boilerplate while keeping the application services focused on business orchestration.
+
