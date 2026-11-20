@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\ContentApprovalDecision;
+use App\Events\ContentApproved;
+use App\Events\ContentRejected;
 use App\Enums\ContentVersionStatus;
 use App\Models\ContentVersion;
 use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
@@ -65,6 +67,7 @@ class ContentApprovalService
 
             $locked->status = ContentVersionStatus::APPROVED;
             $locked->save();
+            ContentApproved::dispatch((int) $locked->id);
 
             return $locked->refresh();
         });
@@ -97,6 +100,7 @@ class ContentApprovalService
             // Any edits require creating a new version.
             $locked->status = ContentVersionStatus::REJECTED;
             $locked->save();
+            ContentRejected::dispatch((int) $locked->id);
 
             return $locked->refresh();
         });
