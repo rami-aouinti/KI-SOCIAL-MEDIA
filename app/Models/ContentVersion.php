@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\ContentVersionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
 
 class ContentVersion extends Model
@@ -61,5 +62,10 @@ class ContentVersion extends Model
     public function briefing(): BelongsTo
     {
         return $this->belongsTo(ContentBriefing::class, 'content_briefing_id');
+    }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(ContentVersionApproval::class);
     }
 }
