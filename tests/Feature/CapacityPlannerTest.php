@@ -49,6 +49,29 @@ class CapacityPlannerTest extends TestCase
         $this->assertSame([], $report['warnings']);
     }
 
+    public function test_it_reuses_eager_loaded_allocations_without_additional_queries(): void
+    {
+        $plan = $this->createPlan();
+        $idea = $this->createIdea($plan, 'Preloaded campaign');
+        $idea->workAllocations()->create([
+            'person_key' => 'person_a',
+            'work_type' => WorkAllocationType::PRODUCTION,
+            'estimated_minutes' => 25,
+        ]);
+
+        $plan->load('contentIdeas.workAllocations');
+
+        $queries = 0;
+        \\Illuminate\\Support\\Facades\\DB::listen(static function () use (&$queries): void {
+            $queries++;
+        });
+
+        $report = app(CapacityPlanner::class)->analyze($plan);
+
+        $this->assertSame(25, $report['people']['person_a']['allocated_minutes']);
+        $this->assertSame(0, $queries);
+    }
+
     public function test_it_warns_when_a_person_exceeds_the_weekly_capacity(): void
     {
         $plan = $this->createPlan();
