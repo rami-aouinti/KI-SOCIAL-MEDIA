@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\DTOs\GeneratedBriefingData;
-use App\DTOs\GenerationMetadataData;
+use App\Application\DTO\GeneratedBriefingData;
+use App\Application\DTO\GenerationMetadataData;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
-use App\Models\ContentIdea;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -48,7 +48,7 @@ class AiAssistedContentWorkflow
      * Generate and persist a complete briefing plus its first immutable
      * content version. Approval remains a separate human action.
      *
-     * @return array{briefing: \App\Models\ContentBriefing, version: \App\Models\ContentVersion, generation: array<string, mixed>}
+     * @return array{briefing: \App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing, version: \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion, generation: array<string, mixed>}
      */
     public function generateBriefing(ContentIdea $idea): array
     {
