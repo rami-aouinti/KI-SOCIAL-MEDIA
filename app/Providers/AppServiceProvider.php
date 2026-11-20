@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Domain\Content\AI\AiContentGeneratorInterface;
-use App\Events\ContentApproved;
-use App\Events\ContentHandedOff;
-use App\Events\ContentRejected;
-use App\Listeners\QueueWeeklyReportRefresh;
+use App\Infrastructure\Events\ContentApproved;
+use App\Infrastructure\Events\ContentHandedOff;
+use App\Infrastructure\Events\ContentRejected;
+use App\Infrastructure\Queue\Listeners\QueueWeeklyReportRefresh;
 use Illuminate\Support\Facades\Event;
-use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
-use App\Repositories\Contracts\ContentHandoffRepositoryInterface;
-use App\Repositories\Contracts\ContentVersionRepositoryInterface;
-use App\Repositories\Eloquent\EloquentContentApprovalRepository;
-use App\Repositories\Eloquent\EloquentContentHandoffRepository;
-use App\Repositories\Eloquent\EloquentContentVersionRepository;
+use App\Domain\Repositories\ContentApprovalRepositoryInterface;
+use App\Domain\Repositories\ContentHandoffRepositoryInterface;
+use App\Domain\Repositories\ContentVersionRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentApprovalRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentHandoffRepository;
+use App\Infrastructure\Persistence\Eloquent\Repositories\EloquentContentVersionRepository;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
 use Illuminate\Support\ServiceProvider;
 
