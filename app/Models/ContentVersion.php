@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\ContentVersionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class ContentVersion extends Model
 {
