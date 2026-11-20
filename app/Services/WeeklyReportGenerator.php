@@ -20,14 +20,16 @@ class WeeklyReportGenerator
      */
     public function generate(WeeklyPlan $weeklyPlan): string
     {
-        $plan = WeeklyPlan::query()
-            ->with([
-                'inspirations',
-                'contentIdeas.workAllocations',
-                'contentIdeas.briefing.versions.approvals',
-                'contentIdeas.briefing.versions.handoffRecords',
-            ])
-            ->findOrFail($weeklyPlan->id);
+        // Route model binding (or a caller) may already provide a loaded plan.
+        // Load only missing relations and avoid re-querying the weekly_plans row.
+        $weeklyPlan->loadMissing([
+            'inspirations',
+            'contentIdeas.workAllocations',
+            'contentIdeas.briefing.versions.approvals',
+            'contentIdeas.briefing.versions.handoffRecords',
+        ]);
+
+        $plan = $weeklyPlan;
 
         $capacity = $this->capacityPlanner->analyze($plan);
         $lines = [
