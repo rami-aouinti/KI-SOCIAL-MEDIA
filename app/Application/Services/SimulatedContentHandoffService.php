@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use App\Domain\Content\Entities\ContentVersionWorkflow;
 use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Transport\Events\ContentHandedOff;
 use App\Domain\Shared\Enums\ContentVersionStatus;
@@ -39,9 +40,7 @@ class SimulatedContentHandoffService
                 return $existing;
             }
 
-            if ($locked->status !== ContentVersionStatus::APPROVED) {
-                throw new LogicException('Only approved content versions can be handed off.');
-            }
+            $nextStatus = ContentVersionWorkflow::fromStatus($locked->status)->handOff()->status();
 
             $approval = $this->approvals->findLatestForVersionAndHash(
                 (int) $locked->id,
@@ -84,7 +83,7 @@ class SimulatedContentHandoffService
                 'handed_off_at' => Carbon::now(),
             ]);
 
-            $locked->status = ContentVersionStatus::HANDED_OFF;
+            $locked->status = $nextStatus;
             $locked->save();
             ContentHandedOff::dispatch((int) $locked->id);
 

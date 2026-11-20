@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
+use App\Domain\Content\Entities\ContentVersionWorkflow;
 use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Transport\Events\ContentApproved;
 use App\Transport\Events\ContentRejected;
@@ -30,11 +31,9 @@ class ContentApprovalService
         return DB::transaction(function () use ($version): ContentVersion {
             $locked = $this->versions->lockForWorkflow((int) $version->id);
 
-            if ($locked->status !== ContentVersionStatus::DRAFT) {
-                throw new LogicException('Only draft versions can be submitted for review.');
-            }
-
-            $locked->status = ContentVersionStatus::IN_REVIEW;
+            $locked->status = ContentVersionWorkflow::fromStatus($locked->status)
+                ->submitForReview()
+                ->status();
             $locked->save();
 
             return $locked->refresh();
@@ -49,9 +48,7 @@ class ContentApprovalService
         return DB::transaction(function () use ($version, $reviewer, $comment): ContentVersion {
             $locked = $this->versions->lockForWorkflow((int) $version->id, true);
 
-            if ($locked->status !== ContentVersionStatus::IN_REVIEW) {
-                throw new LogicException('Only versions in review can be approved.');
-            }
+            $nextStatus = ContentVersionWorkflow::fromStatus($locked->status)->approve()->status();
 
             $this->readinessValidator->assertReady($locked);
             $reviewer = $this->normalizeReviewer($reviewer);
@@ -65,7 +62,7 @@ class ContentApprovalService
                 'reviewed_at' => Carbon::now(),
             ]);
 
-            $locked->status = ContentVersionStatus::APPROVED;
+            $locked->status = $nextStatus;
             $locked->save();
             ContentApproved::dispatch((int) $locked->id);
 
@@ -81,9 +78,7 @@ class ContentApprovalService
         return DB::transaction(function () use ($version, $reviewer, $comment): ContentVersion {
             $locked = $this->versions->lockForWorkflow((int) $version->id);
 
-            if ($locked->status !== ContentVersionStatus::IN_REVIEW) {
-                throw new LogicException('Only versions in review can be rejected.');
-            }
+            $nextStatus = ContentVersionWorkflow::fromStatus($locked->status)->reject()->status();
 
             $reviewer = $this->normalizeReviewer($reviewer);
 
@@ -98,7 +93,7 @@ class ContentApprovalService
 
             // A rejected version remains immutable and cannot be resubmitted.
             // Any edits require creating a new version.
-            $locked->status = ContentVersionStatus::REJECTED;
+            $locked->status = $nextStatus;
             $locked->save();
             ContentRejected::dispatch((int) $locked->id);
 
