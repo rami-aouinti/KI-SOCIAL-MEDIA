@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTOs\ContentVersionData;
 use App\Models\ContentBriefing;
 use App\Models\ContentVersion;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,9 @@ class ContentVersionCreator
             'generation.model' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
-        return DB::transaction(function () use ($briefing, $validated): ContentVersion {
+        $versionData = ContentVersionData::fromValidatedArray($validated);
+
+        return DB::transaction(function () use ($briefing, $versionData): ContentVersion {
             $lockedBriefing = ContentBriefing::query()
                 ->whereKey($briefing->getKey())
                 ->lockForUpdate()
@@ -43,29 +46,11 @@ class ContentVersionCreator
             $nextVersion = ((int) $lockedBriefing->versions()
                 ->max('version_number')) + 1;
 
-            $snapshot = [
-                'hook' => $validated['hook'],
-                'body' => $validated['body'],
-                'channel_variants' => $validated['channel_variants'],
-            ];
-
-            if (isset($validated['generation'])) {
-                $snapshot['generation'] = $validated['generation'];
-            }
-
-            $channels = array_values(array_unique($validated['channels']));
-            $scheduledAt = $validated['scheduled_at'];
-            $mediaReference = $validated['media_reference'] ?? null;
+            $snapshot = $versionData->snapshot();
 
             // The approval fingerprint covers copy, variants, media, channels,
             // schedule and generation provenance.
-            $approvalPayload = [
-                'snapshot' => $snapshot,
-                'media_reference' => $mediaReference,
-                'channels' => $channels,
-                'scheduled_at' => $scheduledAt,
-            ];
-
+            $approvalPayload = $versionData->approvalPayload();
             $canonicalSnapshot = json_encode(
                 $approvalPayload,
                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
