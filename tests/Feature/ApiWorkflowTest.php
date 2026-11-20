@@ -88,7 +88,7 @@ class ApiWorkflowTest extends TestCase
     }
 
     /**
-     * @param list<string> $abilities
+     * @param  list<string>  $abilities
      */
     private function createToken(array $abilities): string
     {
@@ -103,7 +103,7 @@ class ApiWorkflowTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return  array<string, mixed>
      */
     private function validPlanInput(): array
     {
@@ -127,7 +127,7 @@ class ApiWorkflowTest extends TestCase
     }
 
     /**
-     * @return array<string, mixed>
+     * @return  array<string, mixed>
      */
     private function idea(string $title, string $priorityType): array
     {

@@ -67,8 +67,7 @@ class ApiAuthenticationTest extends TestCase
     }
 
     /**
-     * @param list<string>          $abilities
-     * @param DateTimeInterface|null $expiresAt
+     * @param  list<string>  $abilities
      */
     private function createToken(array $abilities, ?DateTimeInterface $expiresAt = null): string
     {
