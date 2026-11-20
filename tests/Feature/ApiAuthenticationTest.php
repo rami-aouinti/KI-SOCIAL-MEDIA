@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Models\ApiToken;
 use App\Infrastructure\Persistence\Eloquent\Models\User;
+use DateTimeInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -66,9 +67,10 @@ class ApiAuthenticationTest extends TestCase
     }
 
     /**
-     * @param list<string> $abilities
+     * @param list<string>          $abilities
+     * @param DateTimeInterface|null $expiresAt
      */
-    private function createToken(array $abilities, mixed $expiresAt = null): string
+    private function createToken(array $abilities, ?DateTimeInterface $expiresAt = null): string
     {
         User::factory()->create()->apiTokens()->create([
             'name' => 'Feature test',

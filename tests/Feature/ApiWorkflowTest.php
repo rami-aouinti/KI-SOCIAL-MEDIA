@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Infrastructure\Persistence\Eloquent\Models\ContentIdea;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Infrastructure\Persistence\Eloquent\Models\User;
 use Database\Seeders\DemoContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,7 +76,7 @@ class ApiWorkflowTest extends TestCase
             ->assertJsonPath('data.status', 'draft')
             ->assertJsonPath('data.version_number', 2);
 
-        $versionId = \App\Infrastructure\Persistence\Eloquent\Models\ContentVersion::query()
+        $versionId = ContentVersion::query()
             ->where('content_briefing_id', $idea->briefing->getKey())
             ->where('version_number', 2)
             ->value('id');
