@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Enums\\ContentApprovalDecision;
-use App\\Enums\\ContentVersionStatus;
-use App\\Models\\ContentHandoffRecord;
-use App\\Models\\ContentVersion;
-use App\\Models\\WeeklyPlan;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Artisan;
-use Illuminate\\Support\\Facades\\Storage;
-use Tests\\TestCase;
+use App\Enums\ContentApprovalDecision;
+use App\Enums\ContentVersionStatus;
+use App\Models\ContentHandoffRecord;
+use App\Models\ContentVersion;
+use App\Models\WeeklyPlan;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 class DemoContentSeederTest extends TestCase
 {
@@ -20,8 +20,8 @@ class DemoContentSeederTest extends TestCase
 
     public function test_demo_seeder_creates_a_complete_five_idea_week_and_is_idempotent(): void
     {
-        Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\DemoContentSeeder']);
-        Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\DemoContentSeeder']);
+        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
+        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
 
         $plan = WeeklyPlan::query()
             ->with('inspirations', 'contentIdeas.workAllocations', 'contentIdeas.briefing.versions.approvals', 'contentIdeas.briefing.versions.handoffRecords')
@@ -45,7 +45,7 @@ class DemoContentSeederTest extends TestCase
 
     public function test_dashboard_and_weekly_report_command_work_with_seeded_demo_data(): void
     {
-        Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\DemoContentSeeder']);
+        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
 
         $this->get('/')->assertOk()->assertSee('KI Social Media')->assertSee('Winter eyewear tips');
         $this->get('/weekly-plans/'.WeeklyPlan::query()->firstOrFail()->id.'/report')->assertOk();
