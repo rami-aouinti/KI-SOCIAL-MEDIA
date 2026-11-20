@@ -1289,17 +1289,17 @@ app/
 │   └── Services/
 ├── Infrastructure/
 │   ├── AI/Mock/
-│   ├── Events/
 │   ├── Persistence/Eloquent/
 │   │   ├── Models/
 │   │   └── Repositories/
+│   ├── Providers/
 │   └── Queue/
 │       ├── Jobs/
 │       └── Listeners/
-├── Transport/
-│   ├── Http/Controllers/
-│   └── Console/Commands/
-└── Providers/
+└── Transport/
+    ├── Events/
+    ├── Http/Controllers/
+    └── Console/Commands/
 ```
 
 ### Responsabilités
@@ -1333,12 +1333,14 @@ Le provider Laravel est le *composition root* : il associe `AiContentGeneratorIn
 
 ### Décisions de migration
 
-Les services existants ont été déplacés sous `Application/Services`, les DTOs sous `Application/DTO`, les enums et contrats sous `Domain`, et les modèles/repositories Eloquent sous `Infrastructure/Persistence/Eloquent`. Les contrôleurs et commandes sont dans `Transport`.
+Les services existants sont sous `Application/Services`, les DTOs sous `Application/DTO`, les enums et contrats sous `Domain`, et les modèles/repositories Eloquent sous `Infrastructure/Persistence/Eloquent`. Le provider est sous `Infrastructure/Providers`; les contrôleurs et commandes sont dans `Transport`.
 
-Des fichiers de compatibilité utilisant `class_alias` sont conservés dans les anciens chemins `App\\Services`, `App\\DTOs`, `App\\Enums`, `App\\Models`, `App\\Repositories`, `App\\Events`, `App\\Jobs` et `App\\Listeners`. Ils évitent une rupture immédiate des tests et des consommateurs historiques. Le code principal doit utiliser les nouveaux namespaces ; ces alias pourront être supprimés après migration de tous les consommateurs.
+Les anciens fichiers de compatibilité utilisant `class_alias` ont été supprimés. Les quatre répertoires de premier niveau sous `app/` sont exclusivement `Domain`, `Application`, `Infrastructure` et `Transport`.
 
-### Limite architecturale assumée
+### État réel de la séparation métier
 
-Ce refactoring structure le monolithe en couches, mais ne prétend pas transformer automatiquement Eloquent en entités Domain pures. Les workflows utilisent encore les modèles Eloquent comme objets de persistance et les contrats de repository exposent ces modèles. Pour un MVP Laravel, cette étape évite de réécrire tout le modèle de données. Une séparation DDD stricte nécessiterait des entités métier indépendantes, des mappers et des DTOs de persistance supplémentaires ; ce coût n'est pas justifié dans le périmètre actuel.
+Deux éléments métier indépendants d'Eloquent ont maintenant été introduits : `Domain/Content/ValueObjects/ContentVersionSnapshot` calcule le fingerprint SHA-256 du contenu approuvé, et `Domain/Content/Entities/ContentVersionWorkflow` applique les transitions autorisées du cycle de vie. Les services d'approbation et de handoff utilisent cette entité pour valider les transitions.
 
-Die Anwendung ist in Domain, Application, Infrastructure und Transport gegliedert. Laravel-spezifische Implementierungen liegen in Infrastructure; HTTP und CLI bleiben in Transport. Die Anwendungsschicht koordiniert die Anwendungsfälle. Kompatibilitäts-Aliase halten alte Namespaces vorübergehend funktionsfähig. Die verbleibende Verwendung von Eloquent-Modellen in den Anwendungsfällen ist eine bewusste pragmatische Grenze dieses zeitlich begrenzten MVPs.
+La séparation n'est toutefois pas encore complète : certains contrats de repositories retournent encore des modèles Eloquent et plusieurs services Application manipulent directement ces modèles. La prochaine tranche doit remplacer ces contrats par des entités/objets métier et ajouter des mappers dans Infrastructure. Il ne faut pas présenter cette migration comme terminée avant que ces dépendances aient disparu.
+
+Die Anwendung ist in Domain, Application, Infrastructure und Transport gegliedert. Die Domain enthält nun eigenständige Snapshot- und Workflow-Objekte. Die vollständige Entkopplung der Application von Eloquent bleibt ein offener Refactoring-Schritt; Repository-Verträge und Mapper müssen dafür noch angepasst werden.

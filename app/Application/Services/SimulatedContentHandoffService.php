@@ -7,7 +7,6 @@ namespace App\Application\Services;
 use App\Domain\Content\Entities\ContentVersionWorkflow;
 use App\Domain\Shared\Enums\ContentApprovalDecision;
 use App\Transport\Events\ContentHandedOff;
-use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;
@@ -16,7 +15,6 @@ use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use LogicException;
 
 class SimulatedContentHandoffService
 {
