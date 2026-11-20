@@ -53,6 +53,9 @@
         @endphp
 
         <div class="eyebrow">Week starting {{ $plan->week_start->format('d M Y') }} · {{ $plan->seasonal_occasion }}</div>
+        @if(data_get($plan->input_data, 'generation.simulated'))
+            <p><span class="pill">AI generation: simulated mock · {{ data_get($plan->input_data, 'generation.model') }}</span></p>
+        @endif
         <div class="grid">
             <section class="card"><div class="eyebrow">Editorial ideas</div><div class="metric">{{ $plan->contentIdeas->count() }}</div><div class="muted">3 priorities · 2 reserves</div></section>
             <section class="card"><div class="eyebrow">Inspiration references</div><div class="metric">{{ $plan->inspirations->count() }}</div><div class="muted">Synthetic references, no live trend claims</div></section>
@@ -97,6 +100,7 @@
             <section class="section">
                 <h2>Featured briefing · {{ $demoIdea->title }}</h2>
                 <article class="card">
+                    <div class="eyebrow">AI-generated demo briefing · human review required</div>
                     <div class="eyebrow">Hook</div>
                     <p>{{ $demoIdea->briefing->hook }}</p>
                     <div class="eyebrow">Production plan</div>
