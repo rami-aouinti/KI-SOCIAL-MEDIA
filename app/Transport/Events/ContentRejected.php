@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Events;
+namespace App\Transport\Events;
 
 use App\Domain\Events\ContentWorkflowEvent;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;

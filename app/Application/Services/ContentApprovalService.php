@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Application\Services;
 
 use App\Domain\Shared\Enums\ContentApprovalDecision;
-use App\Infrastructure\Events\ContentApproved;
-use App\Infrastructure\Events\ContentRejected;
+use App\Transport\Events\ContentApproved;
+use App\Transport\Events\ContentRejected;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use App\Domain\Repositories\ContentApprovalRepositoryInterface;

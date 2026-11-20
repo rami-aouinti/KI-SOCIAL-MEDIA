@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Events;
+namespace App\Transport\Events;
 
 use App\Domain\Events\ContentWorkflowEvent;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 
-final readonly class ContentHandedOff implements ContentWorkflowEvent, ShouldDispatchAfterCommit
+final readonly class ContentApproved implements ContentWorkflowEvent, ShouldDispatchAfterCommit
 {
     use Dispatchable;
     public function __construct(public int $versionId)

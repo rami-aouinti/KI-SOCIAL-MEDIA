@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Services;
 
 use App\Domain\Shared\Enums\ContentApprovalDecision;
-use App\Infrastructure\Events\ContentHandedOff;
+use App\Transport\Events\ContentHandedOff;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentHandoffRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
