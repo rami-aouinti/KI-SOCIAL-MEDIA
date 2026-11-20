@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Enums\ContentIdeaPriority;
-use App\Models\WeeklyPlan;
+use App\Domain\Shared\Enums\ContentIdeaPriority;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Support\Facades\Storage;
 
 class WeeklyReportGenerator
