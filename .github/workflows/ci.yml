@@ -63,6 +63,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: vendor/bin/rector process
 
+      - name: Reapply Pint after Rector
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: vendor/bin/pint
+
       - name: Commit automated code formatting
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
