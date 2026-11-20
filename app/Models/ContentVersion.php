@@ -68,4 +68,9 @@ class ContentVersion extends Model
     {
         return $this->hasMany(ContentVersionApproval::class);
     }
+
+    public function handoffRecords(): HasMany
+    {
+        return $this->hasMany(ContentHandoffRecord::class);
+    }
 }
