@@ -85,8 +85,8 @@ final class SocialHealthCheck extends Command
     {
         try {
             $this->checks[$name] = $probe() ? 'ok' : 'failed';
-        } catch (Throwable $exception) {
-            report($exception);
+        } catch (Throwable $throwable) {
+            report($throwable);
             $this->checks[$name] = 'error';
         }
     }
