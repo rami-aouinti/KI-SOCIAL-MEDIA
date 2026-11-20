@@ -45,17 +45,30 @@ class ContentVersionCreator
                 'channel_variants' => $validated['channel_variants'],
             ];
 
+            $channels = array_values(array_unique($validated['channels']));
+            $scheduledAt = $validated['scheduled_at'];
+            $mediaReference = $validated['media_reference'] ?? null;
+
+            // The approval fingerprint covers every field that must be approved:
+            // copy, channel-specific variants, media reference, channels and schedule.
+            $approvalPayload = [
+                'snapshot' => $snapshot,
+                'media_reference' => $mediaReference,
+                'channels' => $channels,
+                'scheduled_at' => $scheduledAt,
+            ];
+
             $canonicalSnapshot = json_encode(
-                $snapshot,
+                $approvalPayload,
                 JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
             );
 
             return $lockedBriefing->versions()->create([
                 'version_number' => $nextVersion,
                 'snapshot' => $snapshot,
-                'media_reference' => $validated['media_reference'] ?? null,
-                'channels' => array_values(array_unique($validated['channels'])),
-                'scheduled_at' => $validated['scheduled_at'],
+                'media_reference' => $mediaReference,
+                'channels' => $channels,
+                'scheduled_at' => $scheduledAt,
                 'content_hash' => hash('sha256', $canonicalSnapshot),
                 'status' => 'draft',
             ]);
