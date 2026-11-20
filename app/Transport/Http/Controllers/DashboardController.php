@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Transport\Http\Controllers;
 
-use App\Models\WeeklyPlan;
-use App\Services\CapacityPlanner;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\CapacityPlanner;
 use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
