@@ -36,4 +36,9 @@ class WeeklyPlan extends Model
     {
         return $this->hasMany(InspirationReference::class);
     }
+
+    public function contentIdeas(): HasMany
+    {
+        return $this->hasMany(ContentIdea::class);
+    }
 }
