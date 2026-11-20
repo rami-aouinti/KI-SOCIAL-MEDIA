@@ -38,8 +38,7 @@ final class ContentVersionController extends Controller
         int $contentVersion,
         ContentApprovalService $approvals,
         AutomationEventPublisherInterface $automationEvents,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $version = $approvals->submitForReview($contentVersion);
 
         $automationEvents->publish('content.version.submitted_for_review', [
