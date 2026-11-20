@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\\Feature;
 
-use App\Events\ContentApproved;
-use App\Events\ContentHandedOff;
-use App\Events\ContentRejected;
-use App\Jobs\RefreshWeeklyReportForContentVersion;
-use Illuminate\Support\Facades\Queue;
-use Tests\TestCase;
+use App\\Infrastructure\\Events\\ContentApproved;
+use App\\Infrastructure\\Events\\ContentHandedOff;
+use App\\Infrastructure\\Events\\ContentRejected;
+use App\\Infrastructure\\Queue\\Jobs\\RefreshWeeklyReportForContentVersion;
+use Illuminate\\Support\\Facades\\Queue;
+use Tests\\TestCase;
 
 class ContentWorkflowEventsTest extends TestCase
 {
