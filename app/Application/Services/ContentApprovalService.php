@@ -31,7 +31,7 @@ final class ContentApprovalService
             $locked = $this->versions->lockForWorkflow($versionId);
             $next = ContentVersion::fromRecord($locked)->submitForReview();
 
-            return $this->versions->updateStatus($locked->id, $next->status());
+            return $this->versions->updateStatus($locked->id, $next->status);
         });
     }
 

@@ -75,7 +75,7 @@ final class SimulatedContentHandoffService
                 'handed_off_at' => now(),
             ]);
 
-            $this->versions->updateStatus($locked->id, $next->status());
+            $this->versions->updateStatus($locked->id, $next->status);
             $this->events->publish(new ContentHandedOffEvent($locked->id));
 
             return $record;
