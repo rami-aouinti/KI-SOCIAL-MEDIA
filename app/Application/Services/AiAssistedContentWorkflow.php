@@ -50,7 +50,7 @@ class AiAssistedContentWorkflow
     /**
      * Generate a briefing and its first immutable version for human review.
      *
-     * @return array{briefing: \App\Domain\Content\Records\ContentBriefingRecord, version: \App\Domain\Content\Records\ContentVersionRecord, generation: array<string, mixed>}
+     * @return array{briefing: ContentBriefingRecord, version: ContentVersionRecord, generation: array<string, mixed>}
      */
     public function generateBriefing(int $ideaId): array
     {
