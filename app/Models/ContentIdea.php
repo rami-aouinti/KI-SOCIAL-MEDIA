@@ -8,6 +8,7 @@ use App\Enums\ContentIdeaPriority;
 use App\Enums\ContentIdeaStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ContentIdea extends Model
 {
@@ -43,5 +44,10 @@ class ContentIdea extends Model
     public function weeklyPlan(): BelongsTo
     {
         return $this->belongsTo(WeeklyPlan::class);
+    }
+
+    public function workAllocations(): HasMany
+    {
+        return $this->hasMany(WorkAllocation::class);
     }
 }
