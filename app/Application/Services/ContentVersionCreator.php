@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\DTOs\ContentVersionData;
-use App\Models\ContentBriefing;
-use App\Models\ContentVersion;
-use App\Repositories\Contracts\ContentVersionRepositoryInterface;
+use App\Application\DTO\ContentVersionData;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
