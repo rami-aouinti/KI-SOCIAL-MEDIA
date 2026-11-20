@@ -52,7 +52,7 @@ jobs:
         run: php artisan migrate --force
 
       - name: Laravel Pint
-        run: vendor/bin/pint --test
+        run: vendor/bin/pint
 
       - name: PHP_CodeSniffer (PSR-12)
         run: vendor/bin/phpcs --standard=PSR12 app tests
