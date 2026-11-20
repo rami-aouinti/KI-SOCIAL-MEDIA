@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Events;
 
-use App\Contracts\Events\ContentWorkflowEvent;
+use App\Domain\Events\ContentWorkflowEvent;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Foundation\Events\Dispatchable;
 
