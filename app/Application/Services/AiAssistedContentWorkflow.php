@@ -30,8 +30,9 @@ class AiAssistedContentWorkflow
      */
     public function generateWeeklyPlan(array $input): array
     {
+        $startedAt = hrtime(true);
         $generated = $this->generator->generateWeeklyPlan($input);
-        $metadata = $this->generationMetadata();
+        $metadata = $this->generationMetadata($startedAt);
         $result = $this->weeklyPlanGenerator->generate([
             ...$input,
             'ideas' => $generated['ideas'] ?? null,
@@ -48,6 +49,7 @@ class AiAssistedContentWorkflow
     public function generateBriefing(int $ideaId): array
     {
         $idea = $this->briefings->findIdea($ideaId);
+        $startedAt = hrtime(true);
         $generated = $this->generator->generateBriefing([
             'idea' => [
                 'title' => $idea->title,
@@ -84,7 +86,7 @@ class AiAssistedContentWorkflow
             }
         }
 
-        $metadata = $this->generationMetadata();
+        $metadata = $this->generationMetadata($startedAt);
 
         return $this->transactions->run(function () use ($idea, $briefingData, $metadata): array {
             $briefing = $this->briefings->create($idea->id, $briefingData);
@@ -103,13 +105,19 @@ class AiAssistedContentWorkflow
         });
     }
 
-    /** @return array{provider: string, simulated: bool, model: string} */
-    private function generationMetadata(): array
+    /**
+     * @return array{provider: string, simulated: bool, model: string, duration_ms: int, cost_estimate: null}
+     */
+    private function generationMetadata(int $startedAt): array
     {
-        return (new GenerationMetadataData(
-            provider: 'mock',
-            simulated: true,
-            model: 'deterministic-fixture-v1',
-        ))->toArray();
+        return [
+            ... (new GenerationMetadataData(
+                provider: 'mock',
+                simulated: true,
+                model: 'deterministic-fixture-v1',
+            ))->toArray(),
+            'duration_ms' => (int) round((hrtime(true) - $startedAt) / 1_000_000),
+            'cost_estimate' => null,
+        ];
     }
 }

@@ -29,6 +29,7 @@ class AiAssistedContentWorkflowTest extends TestCase
     {
         $result = app(AiAssistedContentWorkflow::class)->generateWeeklyPlan($this->planInput());
         $plan = $result['plan'];
+        $generation = $plan->input_data['generation'];
 
         $this->assertDatabaseCount('weekly_plans', 1);
         $this->assertDatabaseCount('content_ideas', 5);
@@ -43,8 +44,11 @@ class AiAssistedContentWorkflowTest extends TestCase
             'Friendly and practical winter eyewear guidance.',
             $plan->contentIdeas->first()->topic
         );
-        $this->assertSame('mock', $plan->input_data['generation']['provider']);
-        $this->assertTrue($plan->input_data['generation']['simulated']);
+        $this->assertSame('mock', $generation['provider']);
+        $this->assertTrue($generation['simulated']);
+        $this->assertIsInt($generation['duration_ms']);
+        $this->assertGreaterThanOrEqual(0, $generation['duration_ms']);
+        $this->assertNull($generation['cost_estimate']);
         $this->assertTrue($result['capacity_report']['within_capacity']);
         $workTypes = $plan->contentIdeas
             ->flatMap(static fn ($idea) => $idea->workAllocations)
@@ -86,6 +90,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $idea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
 
         $result = app(AiAssistedContentWorkflow::class)->generateBriefing((int) $idea->getKey());
+        $generation = $result['generation'];
 
         $this->assertDatabaseCount('content_briefings', 1);
         $this->assertDatabaseCount('content_versions', 1);
@@ -99,8 +104,10 @@ class AiAssistedContentWorkflowTest extends TestCase
         );
         $this->assertArrayHasKey('instagram', $result['version']->snapshot['channel_variants']);
         $this->assertArrayHasKey('tiktok', $result['version']->snapshot['channel_variants']);
-        $this->assertSame('mock', $result['version']->snapshot['generation']['provider']);
-        $this->assertTrue($result['version']->snapshot['generation']['simulated']);
+        $this->assertSame('mock', $generation['provider']);
+        $this->assertTrue($generation['simulated']);
+        $this->assertIsInt($generation['duration_ms']);
+        $this->assertNull($generation['cost_estimate']);
         $this->assertSame(ContentVersionStatus::DRAFT, $result['version']->status);
         $this->assertStringStartsWith('https://example.com/', $briefing->appointment_url);
     }

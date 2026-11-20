@@ -90,7 +90,7 @@ final class EloquentDashboardDataSource implements DashboardDataSourceInterface
                 'reserve_count' => count(array_filter($ideas, static fn (array $idea): bool => $idea['priority'] === 'reserve')),
                 'inspirations' => $inspirations,
                 'featured' => $featured,
-                'has_handoff' => collect($ideas)->contains(static fn (array $idea): bool => $idea['has_handoff']),
+                'has_handoff' => $featured['has_handoff'] ?? false,
             ],
             capacityLimits: $plan->capacity_limits ?? [],
             allocations: $allocations,
