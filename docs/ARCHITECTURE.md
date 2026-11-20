@@ -258,7 +258,7 @@ Les frontières actuellement vérifiées comprennent notamment :
 
 - **Planning** : `WeeklyPlanGenerator` valide et orchestre le cas d'utilisation via `WeeklyPlanWriterInterface`. La création Eloquent du plan, des inspirations, des idées et des allocations est réalisée par `EloquentWeeklyPlanWriter`.
 - **Briefing IA** : `AiAssistedContentWorkflow` reçoit un identifiant d'idée, consomme un DTO de briefing et coordonne la création du briefing et de sa version. `EloquentContentBriefingWriter` encapsule la lecture et la persistance Eloquent. Les résultats retournés sont des records Domain, pas des modèles Eloquent.
-- **Rapport** : `WeeklyReportGenerator` dépend d'un port de lecture et d'un port de stockage. `EloquentWeeklyReportDataSource` charge les relations nécessaires et `LaravelWeeklyReportStorage` écrit le fichier sur le disque local.
+- **Rapport** : `WeeklyReportGenerator` dépend d'un port de lecture et d'un port de stockage. `EloquentWeeklyReportDataSource` transforme les données Eloquent en `WeeklyReportData`, puis `LaravelWeeklyReportStorage` écrit le fichier sur le disque local. Le générateur de rapport ne manipule que ce DTO.
 - **Versions, validations et handoff** : les contrats de repositories et records Domain sont séparés des implémentations Eloquent dans Infrastructure.
 - **IA** : le contrat de génération est dans Domain et le fournisseur mock déterministe est dans Infrastructure.
 

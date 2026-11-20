@@ -7,8 +7,8 @@ namespace App\Application\DTO;
 final readonly class WeeklyReportData
 {
     /**
-     * @param array<string, int> $capacityLimits
-     * @param list<array{channel: string, source_id: string, description: string, metrics: array<string, mixed>|null}> $inspirations
+     * @param  array<string, int>  $capacityLimits
+     * @param  list<array{channel: string, source_id: string, description: string, metrics: array<string, mixed>|null}>  $inspirations
      * @param list<array{
      *     title: string,
      *     planned_at: string,

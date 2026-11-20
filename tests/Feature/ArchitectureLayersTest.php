@@ -8,6 +8,7 @@ use App\Application\Contracts\ContentBriefingWriterInterface;
 use App\Application\Contracts\WeeklyPlanWriterInterface;
 use App\Application\Contracts\WeeklyReportDataSourceInterface;
 use App\Application\Contracts\WeeklyReportStorageInterface;
+use App\Application\DTO\WeeklyReportData;
 use App\Application\Services\WeeklyPlanGenerator;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Repositories\ContentVersionRepositoryInterface;
@@ -64,6 +65,7 @@ class ArchitectureLayersTest extends TestCase
         $this->assertTrue(interface_exists(ContentBriefingWriterInterface::class));
         $this->assertTrue(interface_exists(WeeklyReportDataSourceInterface::class));
         $this->assertTrue(interface_exists(WeeklyReportStorageInterface::class));
+        $this->assertTrue(class_exists(WeeklyReportData::class));
         $this->assertTrue(enum_exists(ContentVersionStatus::class));
         $this->assertTrue(class_exists(WeeklyPlan::class));
         $this->assertTrue(class_exists(EloquentContentVersionRepository::class));
