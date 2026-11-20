@@ -147,6 +147,11 @@ inside workflow code or node expressions. The queue job retries transient
 failures three times with bounded backoff and logs final failures. Consumers
 should deduplicate by `event_id`, because HTTP delivery is at-least-once.
 
+The current API emits `weekly_plan.created`, `content.version.created`,
+`content.version.submitted_for_review`, `content.version.approved` and
+`content.version.rejected`. Payloads contain record identifiers and scheduling
+metadata, not the full content body or access tokens.
+
 Test the connection after activating the workflow:
 
 ```bash
