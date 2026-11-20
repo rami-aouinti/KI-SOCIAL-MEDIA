@@ -104,35 +104,38 @@ class WeeklyPlanGenerator
         });
 
         $validated = $validator->validate();
+        $planData = WeeklyPlanData::fromValidatedArray($validated);
 
-        return DB::transaction(function () use ($validated): array {
+        return DB::transaction(function () use ($planData): array {
             $plan = WeeklyPlan::create([
-                'week_start' => $validated['week_start'],
-                'seasonal_occasion' => $validated['seasonal_occasion'] ?? null,
-                'input_data' => $validated,
-                'capacity_limits' => $validated['capacity_limits'],
+                'week_start' => $planData->weekStart,
+                'seasonal_occasion' => $planData->seasonalOccasion,
+                'input_data' => $planData->inputData,
+                'capacity_limits' => $planData->capacityLimits,
             ]);
 
-            $plan->inspirations()->createMany($validated['inspirations']);
+            $plan->inspirations()->createMany($planData->inspirationRows());
 
-            foreach ($validated['ideas'] as $ideaData) {
-                $allocations = $ideaData['allocations'];
-                $estimatedMinutes = array_sum(array_column($allocations, 'estimated_minutes'));
+            foreach ($planData->ideas as $ideaData) {
+                $estimatedMinutes = $ideaData->estimatedMinutes();
 
                 $idea = $plan->contentIdeas()->create([
-                    'title' => $ideaData['title'],
-                    'topic' => $ideaData['topic'],
-                    'target_audience' => $ideaData['target_audience'],
-                    'channels' => $ideaData['channels'],
-                    'format' => $ideaData['format'],
-                    'priority_type' => $ideaData['priority_type'],
-                    'selection_reason' => $ideaData['selection_reason'],
-                    'responsible_person' => $ideaData['responsible_person'],
-                    'planned_at' => $ideaData['planned_at'],
+                    'title' => $ideaData->title,
+                    'topic' => $ideaData->topic,
+                    'target_audience' => $ideaData->targetAudience,
+                    'channels' => $ideaData->channels,
+                    'format' => $ideaData->format,
+                    'priority_type' => $ideaData->priorityType,
+                    'selection_reason' => $ideaData->selectionReason,
+                    'responsible_person' => $ideaData->responsiblePerson,
+                    'planned_at' => $ideaData->plannedAt,
                     'estimated_minutes' => $estimatedMinutes,
                 ]);
 
-                $idea->workAllocations()->createMany($allocations);
+                $idea->workAllocations()->createMany(array_map(
+                    static fn ($allocation): array => $allocation->toArray(),
+                    $ideaData->allocations,
+                ));
             }
 
             $plan->load(['inspirations', 'contentIdeas.workAllocations']);
