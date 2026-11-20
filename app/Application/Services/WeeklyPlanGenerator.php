@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\\Application\\Services;
+namespace App\Application\Services;
 
-use App\\Application\\DTO\\WeeklyPlanData;
-use App\\Infrastructure\\Persistence\\Eloquent\\Models\\WeeklyPlan;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\Validator;
-use Illuminate\\Validation\\Validator as LaravelValidator;
+use App\Application\DTO\WeeklyPlanData;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Validator as LaravelValidator;
 
 class WeeklyPlanGenerator
 {
@@ -64,7 +64,7 @@ class WeeklyPlanGenerator
             $weekStart = $input['week_start'] ?? null;
 
             if (is_string($weekStart)) {
-                $date = \\DateTimeImmutable::createFromFormat('!Y-m-d', $weekStart);
+                $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $weekStart);
 
                 if ($date !== false && $date->format('N') !== '1') {
                     $validator->errors()->add('week_start', 'The week must start on a Monday.');
