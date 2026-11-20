@@ -104,8 +104,9 @@ class ContentApprovalService
                 'reviewed_at' => Carbon::now(),
             ]);
 
-            // A rejected version remains immutable. Any edits require creating a new version.
-            $locked->status = ContentVersionStatus::DRAFT;
+            // A rejected version remains immutable and cannot be resubmitted.
+            // Any edits require creating a new version.
+            $locked->status = ContentVersionStatus::REJECTED;
             $locked->save();
 
             return $locked->refresh();
