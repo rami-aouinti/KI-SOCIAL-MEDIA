@@ -8,6 +8,7 @@ use App\Application\Services\ContentApprovalService;
 use App\Application\Services\ContentVersionCreator;
 use App\Domain\Content\Records\ContentVersionRecord;
 use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Infrastructure\Queue\Jobs\DispatchN8nWebhook;
 use App\Transport\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,12 +22,28 @@ final class ContentVersionController extends Controller
     ): JsonResponse {
         $version = $creator->create($briefing, $request->all());
 
+        DispatchN8nWebhook::dispatch('content.version.created', [
+            'content_version_id' => $version->id,
+            'briefing_id' => $version->briefingId,
+            'version_number' => $version->versionNumber,
+            'channels' => $version->channels,
+            'scheduled_at' => $version->scheduledAt,
+        ]);
+
         return response()->json(['data' => $this->serializeRecord($version)], 201);
     }
 
     public function submitForReview(int $contentVersion, ContentApprovalService $approvals): JsonResponse
     {
         $version = $approvals->submitForReview($contentVersion);
+
+        DispatchN8nWebhook::dispatch('content.version.submitted_for_review', [
+            'content_version_id' => $version->id,
+            'briefing_id' => $version->briefingId,
+            'version_number' => $version->versionNumber,
+            'channels' => $version->channels,
+            'scheduled_at' => $version->scheduledAt,
+        ]);
 
         return response()->json(['data' => $this->serializeRecord($version)]);
     }
@@ -45,6 +62,14 @@ final class ContentVersionController extends Controller
             $validated['comment'] ?? null,
         );
 
+        DispatchN8nWebhook::dispatch('content.version.approved', [
+            'content_version_id' => $version->id,
+            'briefing_id' => $version->briefingId,
+            'version_number' => $version->versionNumber,
+            'channels' => $version->channels,
+            'scheduled_at' => $version->scheduledAt,
+        ]);
+
         return response()->json(['data' => $this->serializeRecord($version)]);
     }
 
@@ -61,6 +86,14 @@ final class ContentVersionController extends Controller
             (string) $request->user()->name,
             $validated['comment'],
         );
+
+        DispatchN8nWebhook::dispatch('content.version.rejected', [
+            'content_version_id' => $version->id,
+            'briefing_id' => $version->briefingId,
+            'version_number' => $version->versionNumber,
+            'channels' => $version->channels,
+            'scheduled_at' => $version->scheduledAt,
+        ]);
 
         return response()->json(['data' => $this->serializeRecord($version)]);
     }
