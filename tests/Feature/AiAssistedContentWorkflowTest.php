@@ -8,6 +8,7 @@ use App\Application\Services\AiAssistedContentWorkflow;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -88,9 +89,10 @@ class AiAssistedContentWorkflowTest extends TestCase
 
         $this->assertDatabaseCount('content_briefings', 1);
         $this->assertDatabaseCount('content_versions', 1);
-        $this->assertSame('ready', \\App\\Infrastructure\\Persistence\\Eloquent\\Models\\ContentBriefing::query()->findOrFail($result['briefing']->id)->status->value);
-        $this->assertNotEmpty(\\App\\Infrastructure\\Persistence\\Eloquent\\Models\\ContentBriefing::query()->findOrFail($result['briefing']->id)->filming_plan);
-        $this->assertNotEmpty(\\App\\Infrastructure\\Persistence\\Eloquent\\Models\\ContentBriefing::query()->findOrFail($result['briefing']->id)->on_screen_text);
+        $briefing = ContentBriefing::query()->findOrFail($result['briefing']->id);
+        $this->assertSame('ready', $briefing->status->value);
+        $this->assertNotEmpty($briefing->filming_plan);
+        $this->assertNotEmpty($briefing->on_screen_text);
         $this->assertSame(
             ['instagram', 'tiktok'],
             $result['version']->channels
@@ -100,7 +102,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $this->assertSame('mock', $result['version']->snapshot['generation']['provider']);
         $this->assertTrue($result['version']->snapshot['generation']['simulated']);
         $this->assertSame(ContentVersionStatus::DRAFT, $result['version']->status);
-        $this->assertStringStartsWith('https://example.com/', \\App\\Infrastructure\\Persistence\\Eloquent\\Models\\ContentBriefing::query()->findOrFail($result['briefing']->id)->appointment_url);
+        $this->assertStringStartsWith('https://example.com/', $briefing->appointment_url);
     }
 
     public function test_generated_briefing_cannot_be_silently_overwritten(): void

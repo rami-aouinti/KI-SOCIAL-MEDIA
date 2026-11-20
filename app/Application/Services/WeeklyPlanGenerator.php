@@ -76,7 +76,7 @@ class WeeklyPlanGenerator
             }
 
             $ideas = $input['ideas'] ?? [];
-            if (!is_array($ideas)) {
+            if (! is_array($ideas)) {
                 return;
             }
 

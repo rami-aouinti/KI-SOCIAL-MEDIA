@@ -8,6 +8,8 @@ use App\Application\Contracts\ContentBriefingWriterInterface;
 use App\Application\DTO\GeneratedBriefingData;
 use App\Application\DTO\GenerationMetadataData;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
+use App\Domain\Content\Records\ContentBriefingRecord;
+use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Transactions\TransactionManagerInterface;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
