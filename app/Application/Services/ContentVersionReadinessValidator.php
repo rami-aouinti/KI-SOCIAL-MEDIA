@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Models\ContentVersion;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
 use Illuminate\Validation\ValidationException;
 
 class ContentVersionReadinessValidator
