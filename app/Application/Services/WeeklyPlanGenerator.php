@@ -76,22 +76,30 @@ class WeeklyPlanGenerator
             }
 
             $ideas = $input['ideas'] ?? [];
-            if (! is_array($ideas)) {
+            if (is_array($ideas)) {
+                $priorities = count(array_filter(
+                    $ideas,
+                    static function (mixed $idea): bool {
+                        if (is_array($idea)) {
+                            return ($idea['priority_type'] ?? null) === 'priority';
+                        }
+
+                        return false;
+                    },
+                ));
+                $reserves = count(array_filter(
+                    $ideas,
+                    static function (mixed $idea): bool {
+                        if (is_array($idea)) {
+                            return ($idea['priority_type'] ?? null) === 'reserve';
+                        }
+
+                        return false;
+                    },
+                ));
+            } else {
                 return;
             }
-
-            $priorities = count(array_filter(
-                $ideas,
-                static function (mixed $idea): bool {
-                    return is_array($idea) && ($idea['priority_type'] ?? null) === 'priority';
-                },
-            ));
-            $reserves = count(array_filter(
-                $ideas,
-                static function (mixed $idea): bool {
-                    return is_array($idea) && ($idea['priority_type'] ?? null) === 'reserve';
-                },
-            ));
 
             if ($priorities !== 3) {
                 $validator->errors()->add('ideas', 'A weekly plan must contain exactly three priority ideas.');
