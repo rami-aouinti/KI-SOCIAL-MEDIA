@@ -70,9 +70,7 @@ final class SocialQueueStatus extends Command
         ], self::SUCCESS);
     }
 
-    /**
-     * @param array<string, mixed>  $result
-     */
+    /** @param array<string, mixed> $result */
     private function display(array $result, int $exitCode): int
     {
         if ($this->option('json')) {
