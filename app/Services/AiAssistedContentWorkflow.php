@@ -81,6 +81,8 @@ class AiAssistedContentWorkflow
             'media_reference' => ['required', 'string', 'max:500'],
         ])->validate();
 
+        $briefingData = GeneratedBriefingData::fromValidatedArray($validated);
+
         foreach ($idea->channels as $channel) {
             if (! isset($briefingData->channelVariants[$channel])) {
                 throw ValidationException::withMessages([
@@ -89,7 +91,6 @@ class AiAssistedContentWorkflow
             }
         }
 
-        $briefingData = GeneratedBriefingData::fromValidatedArray($validated);
         $metadata = $this->generationMetadata();
 
         return DB::transaction(function () use ($idea, $briefingData, $metadata): array {
