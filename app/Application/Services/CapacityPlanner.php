@@ -2,18 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services;
+namespace App\\Application\\Services;
 
-use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-
-class CapacityPlanner
+final class CapacityPlanner
 {
     /**
-     * Calculate allocated workload against the capacity limits of a weekly plan.
-     *
-     * Allocations are the source of truth for workload. The planner never
-     * changes capacity limits or silently moves work between people.
-     *
+     * @param array<string, int|numeric-string|null> $capacityLimits
+     * @param iterable<array{person_key: string, estimated_minutes: int}> $allocations
      * @return array{
      *     within_capacity: bool,
      *     people: array<string, array{
@@ -26,21 +21,14 @@ class CapacityPlanner
      *     warnings: list<array{type: string, person_key: string, message: string}>
      * }
      */
-    public function analyze(WeeklyPlan $weeklyPlan): array
+    public function analyze(array $capacityLimits, iterable $allocations): array
     {
-        $capacityLimits = $weeklyPlan->capacity_limits ?? [];
         $allocationsByPerson = [];
 
-        // Reuse relations already eager-loaded by callers (e.g. dashboard/report).
-        // This avoids issuing a second query for the same allocations.
-        $weeklyPlan->loadMissing('contentIdeas.workAllocations');
-
-        foreach ($weeklyPlan->contentIdeas as $idea) {
-            foreach ($idea->workAllocations as $allocation) {
-                $personKey = $allocation->person_key;
-                $allocationsByPerson[$personKey] = ($allocationsByPerson[$personKey] ?? 0)
-                    + $allocation->estimated_minutes;
-            }
+        foreach ($allocations as $allocation) {
+            $personKey = $allocation['person_key'];
+            $allocationsByPerson[$personKey] = ($allocationsByPerson[$personKey] ?? 0)
+                + $allocation['estimated_minutes'];
         }
 
         $personKeys = array_unique([
@@ -67,10 +55,7 @@ class CapacityPlanner
                 $warnings[] = [
                     'type' => 'capacity_missing',
                     'person_key' => $personKey,
-                    'message' => sprintf(
-                        'No valid weekly capacity is configured for %s.',
-                        $personKey
-                    ),
+                    'message' => sprintf('No valid weekly capacity is configured for %s.', $personKey),
                 ];
 
                 continue;
@@ -97,7 +82,7 @@ class CapacityPlanner
                         $personKey,
                         $exceededBy,
                         $allocatedMinutes,
-                        $capacity
+                        $capacity,
                     ),
                 ];
             }
