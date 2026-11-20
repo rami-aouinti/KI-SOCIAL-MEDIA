@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Entities\ContentVersion;
 use App\Domain\Content\Records\ContentApprovalRecord;
 use App\Domain\Content\Records\ContentHandoffRecord;
 use App\Domain\Events\ContentHandedOffEvent;
@@ -37,7 +37,7 @@ final class SimulatedContentHandoffService
                 return $existing;
             }
 
-            $next = ContentVersionWorkflow::fromStatus($locked->status)->handOff();
+            $next = ContentVersion::fromRecord($locked)->handOff();
             $approval = $this->approvals->findLatestForVersionAndHash(
                 $locked->id,
                 ContentApprovalDecision::APPROVED,

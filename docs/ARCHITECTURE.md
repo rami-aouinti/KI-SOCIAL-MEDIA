@@ -1346,3 +1346,21 @@ Deux éléments métier indépendants d'Eloquent ont maintenant été introduits
 La séparation n'est toutefois pas encore complète : certains contrats de repositories retournent encore des modèles Eloquent et plusieurs services Application manipulent directement ces modèles. La prochaine tranche doit remplacer ces contrats par des entités/objets métier et ajouter des mappers dans Infrastructure. Il ne faut pas présenter cette migration comme terminée avant que ces dépendances aient disparu.
 
 Die Anwendung ist in Domain, Application, Infrastructure und Transport gegliedert. Die Domain enthält nun eigenständige Snapshot- und Workflow-Objekte. Die vollständige Entkopplung der Application von Eloquent bleibt ein offener Refactoring-Schritt; Repository-Verträge und Mapper müssen dafür noch angepasst werden.
+
+
+## 21. Domain entities / Entités métier
+
+The Domain now contains explicit, framework-independent entities for the main business concepts:
+
+| Entity | Responsibility |
+|---|---|
+| `Domain/Planning/Entities/WeeklyPlan` | Enforces the 3-priority + 2-reserve composition and weekly-plan lifecycle. |
+| `Domain/Content/Entities/ContentIdea` | Owns the planned → in-production → completed/cancelled lifecycle. |
+| `Domain/Content/Entities/ContentBriefing` | Enforces the required copy before a briefing can become ready. |
+| `Domain/Content/Entities/ContentVersion` | Owns the version identity and draft → review → approved/rejected → handed-off transitions. |
+
+Application approval and handoff use cases now hydrate the `ContentVersion` entity from the immutable Domain record and ask the entity to perform the transition before persisting the resulting status. The Eloquent models remain exclusively in `Infrastructure/Persistence/Eloquent/Models`; they are persistence mappings, not Domain entities.
+
+The `*Record` classes are deliberately retained as immutable repository read/write projections for data crossing the persistence boundary. They are not substitutes for entities: entities own identity and business invariants, while records transport already-persisted state. This separation avoids coupling the Domain to Eloquent and avoids turning every database table into an artificial aggregate.
+
+Domain entity tests cover lifecycle transitions and invalid states. The architecture test also verifies that these entities are autoloadable and that Domain contains no Laravel or Infrastructure dependencies.

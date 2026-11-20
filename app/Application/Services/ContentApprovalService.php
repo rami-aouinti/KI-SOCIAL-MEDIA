@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Entities\ContentVersion;
 use App\Domain\Content\Records\ContentVersionRecord;
 use App\Domain\Events\ContentApprovedEvent;
 use App\Domain\Events\ContentRejectedEvent;
@@ -29,7 +29,7 @@ final class ContentApprovalService
     {
         return $this->transactions->run(function () use ($versionId): ContentVersionRecord {
             $locked = $this->versions->lockForWorkflow($versionId);
-            $next = ContentVersionWorkflow::fromStatus($locked->status)->submitForReview();
+            $next = ContentVersion::fromRecord($locked)->submitForReview();
 
             return $this->versions->updateStatus($locked->id, $next->status());
         });
@@ -39,7 +39,7 @@ final class ContentApprovalService
     {
         return $this->transactions->run(function () use ($versionId, $reviewer, $comment): ContentVersionRecord {
             $locked = $this->versions->lockForWorkflow($versionId, true);
-            $next = ContentVersionWorkflow::fromStatus($locked->status)->approve();
+            $next = ContentVersion::fromRecord($locked)->approve();
             $this->readinessValidator->assertReady($locked);
             $reviewer = $this->normalizeReviewer($reviewer);
 
@@ -63,7 +63,7 @@ final class ContentApprovalService
     {
         return $this->transactions->run(function () use ($versionId, $reviewer, $comment): ContentVersionRecord {
             $locked = $this->versions->lockForWorkflow($versionId);
-            $next = ContentVersionWorkflow::fromStatus($locked->status)->reject();
+            $next = ContentVersion::fromRecord($locked)->reject();
             $reviewer = $this->normalizeReviewer($reviewer);
 
             $this->approvals->create([

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Domain\Content\Entities\ContentVersionWorkflow;
+use App\Domain\Content\Entities\ContentVersion;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use DomainException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -14,40 +14,33 @@ final class ContentVersionWorkflowTest extends TestCase
 {
     public function test_a_draft_can_be_submitted_for_review(): void
     {
-        $workflow = ContentVersionWorkflow::fromStatus(ContentVersionStatus::DRAFT);
+        $version = $this->version(ContentVersionStatus::DRAFT);
 
-        self::assertSame(ContentVersionStatus::IN_REVIEW, $workflow->submitForReview()->status());
-        self::assertSame(ContentVersionStatus::DRAFT, $workflow->status());
+        self::assertSame(ContentVersionStatus::IN_REVIEW, $version->submitForReview()->status);
+        self::assertSame(ContentVersionStatus::DRAFT, $version->status);
     }
 
     public function test_a_version_in_review_can_be_approved_or_rejected(): void
     {
-        $workflow = ContentVersionWorkflow::fromStatus(ContentVersionStatus::IN_REVIEW);
+        $version = $this->version(ContentVersionStatus::IN_REVIEW);
 
-        self::assertSame(ContentVersionStatus::APPROVED, $workflow->approve()->status());
-        self::assertSame(ContentVersionStatus::REJECTED, $workflow->reject()->status());
+        self::assertSame(ContentVersionStatus::APPROVED, $version->approve()->status);
+        self::assertSame(ContentVersionStatus::REJECTED, $version->reject()->status);
     }
 
     public function test_only_an_approved_version_can_be_handed_off(): void
     {
-        $workflow = ContentVersionWorkflow::fromStatus(ContentVersionStatus::APPROVED);
-
-        self::assertSame(ContentVersionStatus::HANDED_OFF, $workflow->handOff()->status());
+        self::assertSame(ContentVersionStatus::HANDED_OFF, $this->version(ContentVersionStatus::APPROVED)->handOff()->status);
     }
 
     #[DataProvider('invalidTransitions')]
-    public function test_it_rejects_invalid_transitions(
-        ContentVersionStatus $initial,
-        string $transition,
-    ): void {
+    public function test_it_rejects_invalid_transitions(ContentVersionStatus $initial, string $transition): void
+    {
         $this->expectException(DomainException::class);
-
-        ContentVersionWorkflow::fromStatus($initial)->{$transition}();
+        $this->version($initial)->{$transition}();
     }
 
-    /**
-     * @return array<string, array{ContentVersionStatus, string}>
-     */
+    /** @return array<string, array{ContentVersionStatus, string}> */
     public static function invalidTransitions(): array
     {
         return [
@@ -59,5 +52,10 @@ final class ContentVersionWorkflowTest extends TestCase
             'cannot hand off a version in review' => [ContentVersionStatus::IN_REVIEW, 'handOff'],
             'cannot hand off twice' => [ContentVersionStatus::HANDED_OFF, 'handOff'],
         ];
+    }
+
+    private function version(ContentVersionStatus $status): ContentVersion
+    {
+        return new ContentVersion(1, 1, 1, str_repeat('a', 64), $status);
     }
 }
