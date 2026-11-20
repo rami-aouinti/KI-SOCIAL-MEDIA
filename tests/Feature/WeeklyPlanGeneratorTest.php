@@ -38,8 +38,8 @@ class WeeklyPlanGeneratorTest extends TestCase
         try {
             app(WeeklyPlanGenerator::class)->generate($input);
             $this->fail('Expected validation to reject an invalid priority/reserve split.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('ideas', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('ideas', $validationException->errors());
         }
 
         $this->assertDatabaseCount('weekly_plans', 0);

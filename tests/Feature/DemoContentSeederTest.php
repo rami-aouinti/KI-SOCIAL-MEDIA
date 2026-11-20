@@ -20,8 +20,8 @@ class DemoContentSeederTest extends TestCase
 
     public function test_demo_seeder_creates_a_complete_five_idea_week_and_is_idempotent(): void
     {
-        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
-        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\DemoContentSeeder::class]);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\DemoContentSeeder::class]);
 
         $plan = WeeklyPlan::query()
             ->with('inspirations', 'contentIdeas.workAllocations', 'contentIdeas.briefing.versions.approvals', 'contentIdeas.briefing.versions.handoffRecords')
@@ -55,7 +55,7 @@ class DemoContentSeederTest extends TestCase
 
     public function test_dashboard_and_weekly_report_command_work_with_seeded_demo_data(): void
     {
-        Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
+        Artisan::call('db:seed', ['--class' => \Database\Seeders\DemoContentSeeder::class]);
 
         $this->get('/')
             ->assertOk()

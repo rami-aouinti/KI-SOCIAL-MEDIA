@@ -32,7 +32,7 @@ final class SimulatedContentHandoffService
             $locked = $this->versions->lockForWorkflow($versionId, true);
             $existing = $this->handoffs->findForVersion($locked->id);
 
-            if ($existing !== null) {
+            if ($existing instanceof \App\Domain\Content\Records\ContentHandoffRecord) {
                 return $existing;
             }
 
@@ -43,7 +43,7 @@ final class SimulatedContentHandoffService
                 $locked->contentHash,
             );
 
-            if ($approval === null) {
+            if (!$approval instanceof \App\Domain\Content\Records\ContentApprovalRecord) {
                 throw ValidationException::withMessages([
                     'approval' => 'A valid approval for this exact content version is required.',
                 ]);

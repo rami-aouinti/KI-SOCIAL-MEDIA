@@ -52,8 +52,8 @@ class ContentApprovalServiceTest extends TestCase
         try {
             $service->approve($review->id, 'Person B');
             $this->fail('Approval should require a media reference.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('media_reference', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('media_reference', $validationException->errors());
         }
 
         $this->assertSame(ContentVersionStatus::IN_REVIEW, ContentVersion::query()->findOrFail($version->id)->status);
@@ -94,9 +94,9 @@ class ContentApprovalServiceTest extends TestCase
         try {
             $service->approve($review->id, 'Person B');
             $this->fail('Approval should require assignment and allocation.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('responsible_person', $exception->errors());
-            $this->assertArrayHasKey('work_allocations', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('responsible_person', $validationException->errors());
+            $this->assertArrayHasKey('work_allocations', $validationException->errors());
         }
     }
 

@@ -24,6 +24,6 @@ class DashboardController extends Controller
 
         $capacity = $plan ? $capacityPlanner->analyze($plan) : null;
 
-        return view('welcome', compact('plan', 'capacity'));
+        return view('welcome', ['plan' => $plan, 'capacity' => $capacity]);
     }
 }

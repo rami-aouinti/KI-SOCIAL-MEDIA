@@ -50,8 +50,8 @@ class SimulatedContentHandoffServiceTest extends TestCase
         try {
             app(SimulatedContentHandoffService::class)->handoff($version->id);
             $this->fail('Handoff must require an approval for the exact content hash.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('approval', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('approval', $validationException->errors());
         }
 
         $this->assertDatabaseCount('content_handoff_records', 0);
@@ -67,8 +67,8 @@ class SimulatedContentHandoffServiceTest extends TestCase
         try {
             app(SimulatedContentHandoffService::class)->handoff($version->id);
             $this->fail('Handoff must require a media reference.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('media_reference', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('media_reference', $validationException->errors());
         }
 
         $this->assertDatabaseCount('content_handoff_records', 0);
@@ -83,8 +83,8 @@ class SimulatedContentHandoffServiceTest extends TestCase
         try {
             app(SimulatedContentHandoffService::class)->handoff($version->id);
             $this->fail('Handoff must require a current work allocation.');
-        } catch (ValidationException $exception) {
-            $this->assertArrayHasKey('work_allocations', $exception->errors());
+        } catch (ValidationException $validationException) {
+            $this->assertArrayHasKey('work_allocations', $validationException->errors());
         }
 
         $this->assertDatabaseCount('content_handoff_records', 0);
