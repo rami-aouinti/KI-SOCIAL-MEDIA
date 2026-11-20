@@ -103,7 +103,7 @@ class ApiWorkflowTest extends TestCase
     }
 
     /**
-     * @return  array<string, mixed>
+     * @return array<string, mixed>
      */
     private function validPlanInput(): array
     {
@@ -127,7 +127,7 @@ class ApiWorkflowTest extends TestCase
     }
 
     /**
-     * @return  array<string, mixed>
+     * @return array<string, mixed>
      */
     private function idea(string $title, string $priorityType): array
     {
