@@ -87,7 +87,7 @@ class ContentRepositoryTest extends TestCase
         $this->assertNull($repository->findLatestForVersionAndHash(
             $version->id,
             ContentApprovalDecision::REJECTED,
-            $version->content_hash,
+            $version->contentHash,
         ));
     }
 

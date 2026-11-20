@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Infrastructure\Events\ContentApproved;
-use App\Infrastructure\Events\ContentHandedOff;
-use App\Infrastructure\Events\ContentRejected;
+use App\Transport\Events\ContentApproved;
+use App\Transport\Events\ContentHandedOff;
+use App\Transport\Events\ContentRejected;
 use App\Infrastructure\Queue\Jobs\RefreshWeeklyReportForContentVersion;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
