@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Queue\Listeners;
 
-use App\Contracts\Events\ContentWorkflowEvent;
-use App\Jobs\RefreshWeeklyReportForContentVersion;
+use App\Domain\Events\ContentWorkflowEvent;
+use App\Infrastructure\Queue\Jobs\RefreshWeeklyReportForContentVersion;
 
 final class QueueWeeklyReportRefresh
 {
