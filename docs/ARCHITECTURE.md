@@ -1272,3 +1272,73 @@ Pour exécuter les jobs en environnement local :
 ```
 
 La connexion de queue `database` est utilisée par défaut. Si aucun worker ne tourne, les jobs restent en attente dans la table `jobs` et seront traités au prochain démarrage du worker. Les tests vérifient que les trois événements demandent bien l'actualisation du rapport.
+
+## 20. Architecture en quatre couches / Vier-Schichten-Architektur
+
+Le code applicatif est organisé en quatre couches explicites :
+
+```text
+app/
+├── Domain/
+│   ├── Content/AI/
+│   ├── Events/
+│   ├── Repositories/
+│   └── Shared/Enums/
+├── Application/
+│   ├── DTO/
+│   └── Services/
+├── Infrastructure/
+│   ├── AI/Mock/
+│   ├── Events/
+│   ├── Persistence/Eloquent/
+│   │   ├── Models/
+│   │   └── Repositories/
+│   └── Queue/
+│       ├── Jobs/
+│       └── Listeners/
+├── Transport/
+│   ├── Http/Controllers/
+│   └── Console/Commands/
+└── Providers/
+```
+
+### Responsabilités
+
+| Couche | Contenu du MVP | Règle |
+|---|---|---|
+| **Domain** | Contrat IA, contrats de repositories, contrat d'événement, enums métier | Définit le vocabulaire et les ports métier ; ne contient pas de contrôleur HTTP ni d'implémentation Eloquent. |
+| **Application** | Services de workflow, génération, validation, approbation, handoff, capacité, rapport et DTOs | Orchestre les cas d'utilisation et contrôle les transactions. |
+| **Infrastructure** | Mock IA, modèles Eloquent, repositories Eloquent, événements Laravel, jobs et listeners | Fournit les implémentations techniques et les effets secondaires. |
+| **Transport** | Contrôleurs HTTP et commandes Artisan | Traduit les entrées/sorties et délègue à Application ; ne porte pas les règles métier. |
+
+### Flux principal
+
+```text
+HTTP / CLI
+   |
+   v
+Transport
+   |
+   v
+Application
+   |       \\
+   v        \\ utilise les contrats
+Domain       \\
+   ^          v
+   +------ Infrastructure
+          (Eloquent, mock, queue)
+```
+
+Le provider Laravel est le *composition root* : il associe `AiContentGeneratorInterface` à `MockAiContentGenerator` et les contrats de repositories à leurs adaptateurs Eloquent. Les événements Laravel et les traitements de queue sont également enregistrés à cet endroit.
+
+### Décisions de migration
+
+Les services existants ont été déplacés sous `Application/Services`, les DTOs sous `Application/DTO`, les enums et contrats sous `Domain`, et les modèles/repositories Eloquent sous `Infrastructure/Persistence/Eloquent`. Les contrôleurs et commandes sont dans `Transport`.
+
+Des fichiers de compatibilité utilisant `class_alias` sont conservés dans les anciens chemins `App\\Services`, `App\\DTOs`, `App\\Enums`, `App\\Models`, `App\\Repositories`, `App\\Events`, `App\\Jobs` et `App\\Listeners`. Ils évitent une rupture immédiate des tests et des consommateurs historiques. Le code principal doit utiliser les nouveaux namespaces ; ces alias pourront être supprimés après migration de tous les consommateurs.
+
+### Limite architecturale assumée
+
+Ce refactoring structure le monolithe en couches, mais ne prétend pas transformer automatiquement Eloquent en entités Domain pures. Les workflows utilisent encore les modèles Eloquent comme objets de persistance et les contrats de repository exposent ces modèles. Pour un MVP Laravel, cette étape évite de réécrire tout le modèle de données. Une séparation DDD stricte nécessiterait des entités métier indépendantes, des mappers et des DTOs de persistance supplémentaires ; ce coût n'est pas justifié dans le périmètre actuel.
+
+Die Anwendung ist in Domain, Application, Infrastructure und Transport gegliedert. Laravel-spezifische Implementierungen liegen in Infrastructure; HTTP und CLI bleiben in Transport. Die Anwendungsschicht koordiniert die Anwendungsfälle. Kompatibilitäts-Aliase halten alte Namespaces vorübergehend funktionsfähig. Die verbleibende Verwendung von Eloquent-Modellen in den Anwendungsfällen ist eine bewusste pragmatische Grenze dieses zeitlich begrenzten MVPs.
