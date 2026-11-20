@@ -252,15 +252,17 @@ Les modèles Eloquent sont des objets de persistance et ne doivent pas être pr�
 
 #### État de la migration des couches
 
-La migration du code est progressive. À ce stade :
+La structure livrée utilise uniquement quatre répertoires directement sous `app/` : `Application`, `Domain`, `Infrastructure` et `Transport`. Les services de cas d'utilisation et leurs DTO sont dans Application ; les modèles Eloquent, repositories concrets, providers, adaptateurs de stockage et implémentations techniques sont dans Infrastructure.
 
-- **Domain** : le port `AiContentGeneratorInterface` est déplacé dans `App\\Domain\\Content\\AI`.
-- **Infrastructure** : le mock déterministe est déplacé dans `App\\Infrastructure\\AI\\Mock` et lié au port par `AppServiceProvider`.
-- **Transport** : les contrôleurs HTTP et la commande de rapport sont déplacés dans `App\\Transport`; les routes et l'enregistrement des commandes Laravel pointent vers ces nouveaux namespaces.
-- **Application** : les services métier et les DTO historiques restent temporairement dans leurs namespaces `App\\Services` et `App\\DTOs`. Leur migration doit se faire par cas d'utilisation, avec mise à jour coordonnée des tests et des dépendances Eloquent.
-- Les modèles et repositories historiques restent également en place tant que leurs contrats dépendent directement des modèles Eloquent. Ils ne doivent pas être déplacés artificiellement dans Domain avant d'avoir des contrats indépendants de la persistance.
+Les frontières actuellement vérifiées comprennent notamment :
 
-Cette étape établit les premières frontières réelles sans prétendre que l'ensemble du dépôt a déjà été migré. Le prochain chantier est la couche Application et ses DTO, puis l'isolation des contrats de persistance et des modèles Eloquent.
+- **Planning** : `WeeklyPlanGenerator` valide et orchestre le cas d'utilisation via `WeeklyPlanWriterInterface`. La création Eloquent du plan, des inspirations, des idées et des allocations est réalisée par `EloquentWeeklyPlanWriter`.
+- **Briefing IA** : `AiAssistedContentWorkflow` reçoit un identifiant d'idée, consomme un DTO de briefing et coordonne la création du briefing et de sa version. `EloquentContentBriefingWriter` encapsule la lecture et la persistance Eloquent. Les résultats retournés sont des records Domain, pas des modèles Eloquent.
+- **Rapport** : `WeeklyReportGenerator` dépend d'un port de lecture et d'un port de stockage. `EloquentWeeklyReportDataSource` charge les relations nécessaires et `LaravelWeeklyReportStorage` écrit le fichier sur le disque local.
+- **Versions, validations et handoff** : les contrats de repositories et records Domain sont séparés des implémentations Eloquent dans Infrastructure.
+- **IA** : le contrat de génération est dans Domain et le fournisseur mock déterministe est dans Infrastructure.
+
+Application utilise encore les validateurs Laravel pour valider les entrées du MVP. Cela ne place pas Eloquent ou les modèles de persistance dans Application ; les détails SQL et stockage restent derrière des ports. Les tests d'architecture vérifient la structure à quatre couches et l'absence de dépendances framework/persistance dans Domain.
 
 #### Stratégie de migration
 

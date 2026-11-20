@@ -49,7 +49,7 @@ class ArchitectureLayersTest extends TestCase
 
     public function test_classes_from_each_architecture_layer_are_autoloadable(): void
     {
-        $this->assertTrue(class_exists(WeeklyPlanGenerator::class));
+        $this->assertTrue(class_exists(WeeklyPlanGenerator::class));\n        $this->assertTrue(interface_exists(WeeklyPlanWriterInterface::class));\n        $this->assertTrue(interface_exists(ContentBriefingWriterInterface::class));\n        $this->assertTrue(interface_exists(WeeklyReportDataSourceInterface::class));\n        $this->assertTrue(interface_exists(WeeklyReportStorageInterface::class));\n        $this->assertTrue(class_exists(EloquentWeeklyPlanWriter::class));\n        $this->assertTrue(class_exists(EloquentContentBriefingWriter::class));\n        $this->assertTrue(class_exists(EloquentWeeklyReportDataSource::class));\n        $this->assertTrue(class_exists(LaravelWeeklyReportStorage::class));
         $this->assertTrue(interface_exists(AiContentGeneratorInterface::class));
         $this->assertTrue(interface_exists(ContentVersionRepositoryInterface::class));
         $this->assertTrue(enum_exists(ContentVersionStatus::class));
