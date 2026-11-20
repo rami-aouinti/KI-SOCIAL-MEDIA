@@ -45,7 +45,7 @@
         @php
             $priorities = $plan->contentIdeas->where('priority_type.value', 'priority');
             $reserves = $plan->contentIdeas->where('priority_type.value', 'reserve');
-            $capacity = app(\\App\\Services\\CapacityPlanner::class)->analyze($plan);
+            $capacity = app(\App\Services\CapacityPlanner::class)->analyze($plan);
             $demoIdea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
             $demoVersion = $demoIdea?->briefing?->versions?->sortByDesc('version_number')->first();
             $demoApproval = $demoVersion?->approvals?->sortByDesc('reviewed_at')->first();
