@@ -116,6 +116,14 @@ N8N_WEBHOOK_URL=http://n8n:5678/webhook/social-media-events
 N8N_PORT=5678
 ```
 
+Refresh Laravel's cached configuration and restart the queue worker so it
+loads the new settings:
+
+```bash
+docker compose exec laravel.test php artisan optimize:clear
+docker compose restart queue-worker
+```
+
 Start the service:
 
 ```bash
