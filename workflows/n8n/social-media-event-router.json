@@ -1,0 +1,62 @@
+{
+  "name": "KI Social Media - Event Router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "social-media-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a0b6c55c-8a84-4df9-8d5c-2b79c5c9a001",
+      "name": "Laravel Event Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "f4b5b0d2-8c70-4db0-8b47-5d6d5d0c0001"
+    },
+    {
+      "parameters": {
+        "jsCode": "const event = $json.body ?? $json;\nif (!event.event_id || !event.event_type || !event.occurred_at) {\n  throw new Error('Invalid Laravel automation event envelope');\n}\nreturn [{ json: { event_id: event.event_id, event_type: event.event_type, occurred_at: event.occurred_at, data: event.data ?? {}, received_at: new Date().toISOString() } }];"
+      },
+      "id": "a0b6c55c-8a84-4df9-8d5c-2b79c5c9a002",
+      "name": "Validate Event Envelope",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { accepted: true, event_id: $json.event_id, event_type: $json.event_type } }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "a0b6c55c-8a84-4df9-8d5c-2b79c5c9a003",
+      "name": "Acknowledge Event",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [740, 300]
+    }
+  ],
+  "connections": {
+    "Laravel Event Webhook": {
+      "main": [[{ "node": "Validate Event Envelope", "type": "main", "index": 0 }]]
+    },
+    "Validate Event Envelope": {
+      "main": [[{ "node": "Acknowledge Event", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
