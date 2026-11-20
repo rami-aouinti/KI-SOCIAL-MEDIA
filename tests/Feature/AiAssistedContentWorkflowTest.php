@@ -8,6 +8,7 @@ use App\Application\Services\AiAssistedContentWorkflow;
 use App\Domain\Content\AI\AiContentGeneratorInterface;
 use App\Domain\Shared\Enums\ContentVersionStatus;
 use App\Infrastructure\AI\Mock\MockAiContentGenerator;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentBriefing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -88,9 +89,10 @@ class AiAssistedContentWorkflowTest extends TestCase
 
         $this->assertDatabaseCount('content_briefings', 1);
         $this->assertDatabaseCount('content_versions', 1);
-        $this->assertSame('ready', $result['briefing']->status->value);
-        $this->assertNotEmpty($result['briefing']->filming_plan);
-        $this->assertNotEmpty($result['briefing']->on_screen_text);
+        $briefing = ContentBriefing::query()->findOrFail($result['briefing']->id);
+        $this->assertSame('ready', $briefing->status->value);
+        $this->assertNotEmpty($briefing->filming_plan);
+        $this->assertNotEmpty($briefing->on_screen_text);
         $this->assertSame(
             ['instagram', 'tiktok'],
             $result['version']->channels
@@ -109,7 +111,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $idea = $plan->contentIdeas->firstWhere('title', 'Winter eyewear tips');
         $workflow = app(AiAssistedContentWorkflow::class);
 
-        $workflow->generateBriefing($idea);
+        $workflow->generateBriefing((int) $idea->getKey());
 
         $this->expectException(ValidationException::class);
         $workflow->generateBriefing($idea);
