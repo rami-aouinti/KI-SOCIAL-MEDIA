@@ -17,11 +17,7 @@ class WeeklyPlanGenerator
     }
 
     /**
-     * Persist a weekly plan from structured, already-prepared input.
-     *
-     * This service does not invent ideas or claim that inspirations are trends.
-     * It validates the supplied five ideas, stores their provenance and task
-     * allocations, then asks CapacityPlanner to calculate the workload.
+     * Persist a structured plan after validating both user input and generated ideas.
      *
      * @param array<string, mixed> $input
      * @return array{
@@ -35,6 +31,17 @@ class WeeklyPlanGenerator
         $validator = Validator::make($input, [
             'week_start' => ['required', 'date_format:Y-m-d'],
             'seasonal_occasion' => ['nullable', 'string', 'max:150'],
+            'themes' => ['nullable', 'array'],
+            'themes.*' => ['string', 'max:200'],
+            'tone' => ['nullable', 'string', 'max:100'],
+            'target_audience' => ['nullable', 'string', 'max:150'],
+            'brand_context' => ['nullable', 'string', 'max:500'],
+            'channels' => ['nullable', 'array'],
+            'channels.*' => ['string', 'in:instagram,facebook,tiktok,linkedin'],
+            'generation' => ['nullable', 'array'],
+            'generation.provider' => ['required_with:generation', 'string', 'max:50'],
+            'generation.simulated' => ['required_with:generation', 'boolean'],
+            'generation.model' => ['nullable', 'string', 'max:100'],
             'capacity_limits' => ['required', 'array', 'min:1'],
             'capacity_limits.*' => ['required', 'integer', 'min:0'],
             'inspirations' => ['required', 'array', 'min:3'],
