@@ -114,7 +114,7 @@ class AiAssistedContentWorkflowTest extends TestCase
         $workflow->generateBriefing((int) $idea->getKey());
 
         $this->expectException(ValidationException::class);
-        $workflow->generateBriefing($idea);
+        $workflow->generateBriefing((int) $idea->getKey());
     }
 
     /**
