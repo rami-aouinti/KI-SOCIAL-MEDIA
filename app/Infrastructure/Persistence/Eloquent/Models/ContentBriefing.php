@@ -8,6 +8,7 @@ use App\Domain\Shared\Enums\ContentBriefingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ContentBriefing extends Model
 {
@@ -43,5 +44,10 @@ class ContentBriefing extends Model
     public function versions(): HasMany
     {
         return $this->hasMany(ContentVersion::class);
+    }
+
+    public function latestVersion(): HasOne
+    {
+        return $this->hasOne(ContentVersion::class)->latestOfMany('version_number');
     }
 }

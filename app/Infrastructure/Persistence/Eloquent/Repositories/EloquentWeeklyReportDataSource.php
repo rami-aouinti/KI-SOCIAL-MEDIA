@@ -16,8 +16,8 @@ final class EloquentWeeklyReportDataSource implements WeeklyReportDataSourceInte
             ->with([
                 'inspirations',
                 'contentIdeas.workAllocations',
-                'contentIdeas.briefing.versions.approvals',
-                'contentIdeas.briefing.versions.handoffRecords',
+                'contentIdeas.briefing.latestVersion.latestApproval',
+                'contentIdeas.briefing.latestVersion.latestHandoff',
             ])
             ->findOrFail($weeklyPlanId);
 
@@ -32,17 +32,9 @@ final class EloquentWeeklyReportDataSource implements WeeklyReportDataSourceInte
 
         $ideas = $plan->contentIdeas
             ->map(function ($idea): array {
-                $version = $idea->briefing?->versions
-                    ->sortByDesc('version_number')
-                    ->first();
-
-                $approval = $version?->approvals
-                    ->sortByDesc('reviewed_at')
-                    ->first();
-
-                $handoff = $version?->handoffRecords
-                    ->sortByDesc('handed_off_at')
-                    ->first();
+                $version = $idea->briefing?->latestVersion;
+                $approval = $version?->latestApproval;
+                $handoff = $version?->latestHandoff;
 
                 return [
                     'title' => $idea->title,

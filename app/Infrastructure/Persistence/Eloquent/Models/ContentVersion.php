@@ -8,6 +8,7 @@ use App\Domain\Shared\Enums\ContentVersionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use LogicException;
 
 class ContentVersion extends Model
@@ -72,5 +73,15 @@ class ContentVersion extends Model
     public function handoffRecords(): HasMany
     {
         return $this->hasMany(ContentHandoffRecord::class);
+    }
+
+    public function latestApproval(): HasOne
+    {
+        return $this->hasOne(ContentVersionApproval::class)->latestOfMany('reviewed_at');
+    }
+
+    public function latestHandoff(): HasOne
+    {
+        return $this->hasOne(ContentHandoffRecord::class)->latestOfMany('handed_off_at');
     }
 }
