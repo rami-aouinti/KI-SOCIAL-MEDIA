@@ -81,7 +81,7 @@ class ContentVersionPersistenceTest extends TestCase
         $version = app(ContentVersionCreator::class)->create($briefing, $this->versionData());
 
         $version->snapshot = ['hook' => 'Changed after approval'];
-        $this->expectException(\\LogicException::class);
+        $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('Create a new version instead.');
 
         $version->save();
