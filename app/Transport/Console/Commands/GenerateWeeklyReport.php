@@ -26,7 +26,7 @@ class GenerateWeeklyReport extends Command
             return self::FAILURE;
         }
 
-        $path = $generator->store($plan);
+        $path = $generator->store((int) $plan->getKey());
         $this->info('Weekly report generated: storage/app/private/'.$path);
 
         return self::SUCCESS;

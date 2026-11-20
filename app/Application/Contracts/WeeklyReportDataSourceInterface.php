@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Contracts;
 
+use App\Application\DTO\WeeklyReportData;
+
 interface WeeklyReportDataSourceInterface
 {
-    /** Load the persisted plan and the relations required by the report. */
-    public function load(mixed $weeklyPlan): mixed;
+    public function find(int $weeklyPlanId): WeeklyReportData;
 }

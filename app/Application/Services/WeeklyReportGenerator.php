@@ -6,6 +6,7 @@ namespace App\Application\Services;
 
 use App\Application\Contracts\WeeklyReportDataSourceInterface;
 use App\Application\Contracts\WeeklyReportStorageInterface;
+use App\Application\DTO\WeeklyReportData;
 use App\Domain\Shared\Enums\ContentIdeaPriority;
 
 class WeeklyReportGenerator
@@ -16,45 +17,56 @@ class WeeklyReportGenerator
         private readonly WeeklyReportStorageInterface $storage,
     ) {}
 
-    /**
-     * Build a human-readable report from persisted records only.
-     */
-    public function generate(mixed $weeklyPlan): string
+    public function generate(int $weeklyPlanId): string
     {
-        $plan = $this->reports->load($weeklyPlan);
+        return $this->render($this->reports->find($weeklyPlanId));
+    }
 
-        $allocations = $plan->contentIdeas
-            ->flatMap(static fn ($idea) => $idea->workAllocations)
-            ->map(static fn ($allocation): array => [
-                'person_key' => $allocation->person_key,
-                'estimated_minutes' => $allocation->estimated_minutes,
-            ])
-            ->all();
-        $capacity = $this->capacityPlanner->analyze($plan->capacity_limits ?? [], $allocations);
+    public function store(int $weeklyPlanId): string
+    {
+        $report = $this->reports->find($weeklyPlanId);
+        $path = sprintf('weekly-reports/weekly-report-%s.txt', $report->weekStart);
+
+        $this->storage->put($path, $this->render($report));
+
+        return $path;
+    }
+
+    private function render(WeeklyReportData $report): string
+    {
+        $allocations = [];
+
+        foreach ($report->ideas as $idea) {
+            foreach ($idea['allocations'] as $allocation) {
+                $allocations[] = $allocation;
+            }
+        }
+
+        $capacity = $this->capacityPlanner->analyze($report->capacityLimits, $allocations);
         $lines = [
             'KI SOCIAL MEDIA — RAPPORT HEBDOMADAIRE',
             str_repeat('=', 48),
-            'Semaine du : '.$plan->week_start->toDateString(),
-            'Contexte saisonnier : '.($plan->seasonal_occasion ?: 'Non renseigné'),
-            'Statut du plan : '.$this->enumValue($plan->status),
+            'Semaine du : '.$report->weekStart,
+            'Contexte saisonnier : '.($report->seasonalOccasion ?: 'Non renseigné'),
+            'Statut du plan : '.$report->status,
             '',
             '1. INSPIRATIONS ENREGISTRÉES',
             str_repeat('-', 32),
         ];
 
-        if ($plan->inspirations->isEmpty()) {
+        if ($report->inspirations === []) {
             $lines[] = 'Aucune référence enregistrée.';
         } else {
-            foreach ($plan->inspirations as $reference) {
+            foreach ($report->inspirations as $reference) {
                 $lines[] = sprintf(
                     '- [%s] %s — %s',
-                    $reference->channel,
-                    $reference->source_id,
-                    $reference->description
+                    $reference['channel'],
+                    $reference['source_id'],
+                    $reference['description'],
                 );
-                $lines[] = '  Mesures : '.($reference->metrics === null
+                $lines[] = '  Mesures : '.($reference['metrics'] === null
                     ? 'Inconnues / non fournies'
-                    : json_encode($reference->metrics, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                    : json_encode($reference['metrics'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             }
         }
 
@@ -62,35 +74,39 @@ class WeeklyReportGenerator
         $lines[] = '2. PLANNING ÉDITORIAL';
         $lines[] = str_repeat('-', 32);
 
-        foreach ([ContentIdeaPriority::PRIORITY, ContentIdeaPriority::RESERVE] as $priority) {
-            $lines[] = $priority === ContentIdeaPriority::PRIORITY
+        foreach ([ContentIdeaPriority::PRIORITY->value, ContentIdeaPriority::RESERVE->value] as $priority) {
+            $lines[] = $priority === ContentIdeaPriority::PRIORITY->value
                 ? 'PRIORITÉS'
                 : 'RÉSERVES';
 
-            $ideas = $plan->contentIdeas
-                ->filter(fn ($idea): bool => $idea->priority_type === $priority)
-                ->sortBy('planned_at');
+            $ideas = array_values(array_filter(
+                $report->ideas,
+                static fn (array $idea): bool => $idea['priority_type'] === $priority,
+            ));
+            usort(
+                $ideas,
+                static fn (array $left, array $right): int => $left['planned_at'] <=> $right['planned_at'],
+            );
 
-            if ($ideas->isEmpty()) {
+            if ($ideas === []) {
                 $lines[] = '- Aucune idée enregistrée.';
             }
 
             foreach ($ideas as $idea) {
                 $lines[] = sprintf(
                     '- %s | %s | %s | %s | %d min',
-                    $idea->title,
-                    $idea->planned_at->toDateString(),
-                    implode(', ', $idea->channels ?? []),
-                    $idea->responsible_person,
-                    $idea->estimated_minutes
+                    $idea['title'],
+                    $idea['planned_at'],
+                    implode(', ', $idea['channels']),
+                    $idea['responsible_person'],
+                    $idea['estimated_minutes'],
                 );
-                $lines[] = '  Statut : '.$this->enumValue($idea->status);
-                $lines[] = '  Justification : '.($idea->selection_reason ?: 'Non renseignée');
+                $lines[] = '  Statut : '.$idea['status'];
+                $lines[] = '  Justification : '.($idea['selection_reason'] ?: 'Non renseignée');
 
-                $versions = $idea->briefing?->versions ?? collect();
-                $latestVersion = $versions->sortByDesc('version_number')->first();
+                $version = $idea['latest_version'];
 
-                if (! $latestVersion) {
+                if ($version === null) {
                     $lines[] = '  Contenu : aucun briefing/version enregistré.';
                     $lines[] = '  Validation : Aucune validation enregistrée';
                     $lines[] = '  Transmission : Aucune transmission enregistrée';
@@ -100,21 +116,23 @@ class WeeklyReportGenerator
 
                 $lines[] = sprintf(
                     '  Version : v%d (%s)',
-                    $latestVersion->version_number,
-                    $this->enumValue($latestVersion->status)
+                    $version['version_number'],
+                    $version['status'],
                 );
 
-                $approval = $latestVersion->approvals
-                    ->sortByDesc('reviewed_at')
-                    ->first();
-
-                $lines[] = '  Validation : '.($approval
-                    ? sprintf('%s par %s le %s', $this->enumValue($approval->decision), $approval->reviewer, $approval->reviewed_at->toDateTimeString())
+                $approval = $version['approval'];
+                $lines[] = '  Validation : '.($approval !== null
+                    ? sprintf(
+                        '%s par %s le %s',
+                        $approval['decision'],
+                        $approval['reviewer'],
+                        $approval['reviewed_at'],
+                    )
                     : 'Aucune validation enregistrée');
 
-                $handoff = $latestVersion->handoffRecords->sortByDesc('handed_off_at')->first();
-                $lines[] = '  Transmission : '.($handoff
-                    ? sprintf('%s (simulée) le %s', $handoff->status, $handoff->handed_off_at->toDateTimeString())
+                $handoff = $version['handoff'];
+                $lines[] = '  Transmission : '.($handoff !== null
+                    ? sprintf('%s (simulée) le %s', $handoff['status'], $handoff['handed_off_at'])
                     : 'Aucune transmission enregistrée');
             }
         }
@@ -130,7 +148,7 @@ class WeeklyReportGenerator
                     '%d/%d min, reste %d min',
                     $details['allocated_minutes'],
                     $details['capacity_minutes'],
-                    $details['remaining_minutes']
+                    $details['remaining_minutes'],
                 );
 
             $lines[] = sprintf('- %s : %s', $person, $capacityText);
@@ -154,24 +172,5 @@ class WeeklyReportGenerator
         $lines[] = '';
 
         return implode(PHP_EOL, $lines);
-    }
-
-    /**
-     * Store the report on the local Laravel disk and return its relative path.
-     */
-    public function store(mixed $weeklyPlan): string
-    {
-        $plan = $this->reports->load($weeklyPlan);
-        $week = $plan->week_start->toDateString();
-        $path = sprintf('weekly-reports/weekly-report-%s.txt', $week);
-
-        $this->storage->put($path, $this->generate($plan));
-
-        return $path;
-    }
-
-    private function enumValue(mixed $value): string
-    {
-        return $value instanceof \BackedEnum ? $value->value : (string) $value;
     }
 }

@@ -9,7 +9,6 @@ use App\Domain\Shared\Enums\ContentIdeaPriority;
 use App\Domain\Shared\Enums\WorkAllocationType;
 use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -20,7 +19,7 @@ class WeeklyReportGeneratorTest extends TestCase
     public function test_report_contains_saved_ideas_capacity_and_simulation_disclaimer(): void
     {
         $plan = $this->createPlanWithIdea();
-        $report = app(WeeklyReportGenerator::class)->generate($plan);
+        $report = app(WeeklyReportGenerator::class)->generate((int) $plan->getKey());
 
         $this->assertStringContainsString('Semaine du : 2026-11-23', $report);
         $this->assertStringContainsString('PRIORITÉS', $report);
@@ -32,25 +31,13 @@ class WeeklyReportGeneratorTest extends TestCase
         $this->assertStringContainsString('Mesures : Inconnues / non fournies', $report);
     }
 
-    public function test_report_reuses_preloaded_plan_relations_without_additional_queries(): void
+    public function test_report_reads_the_persisted_report_data(): void
     {
         $plan = $this->createPlanWithIdea();
-        $plan->load([
-            'inspirations',
-            'contentIdeas.workAllocations',
-            'contentIdeas.briefing.versions.approvals',
-            'contentIdeas.briefing.versions.handoffRecords',
-        ]);
-
-        $queryCount = 0;
-        DB::listen(function () use (&$queryCount): void {
-            $queryCount++;
-        });
-
-        $report = app(WeeklyReportGenerator::class)->generate($plan);
+        $report = app(WeeklyReportGenerator::class)->generate((int) $plan->getKey());
 
         $this->assertStringContainsString('Winter eyewear tips', $report);
-        $this->assertSame(0, $queryCount);
+        $this->assertStringContainsString('synthetic-source-001', $report);
     }
 
     public function test_report_is_exported_as_a_text_file_on_the_local_disk(): void
@@ -58,7 +45,7 @@ class WeeklyReportGeneratorTest extends TestCase
         Storage::fake('local');
         $plan = $this->createPlanWithIdea();
 
-        $path = app(WeeklyReportGenerator::class)->store($plan);
+        $path = app(WeeklyReportGenerator::class)->store((int) $plan->getKey());
 
         $this->assertSame('weekly-reports/weekly-report-2026-11-23.txt', $path);
         Storage::disk('local')->assertExists($path);

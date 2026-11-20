@@ -15,7 +15,7 @@ class WeeklyPlanReportController extends Controller
         WeeklyPlan $weeklyPlan,
         WeeklyReportGenerator $generator,
     ): StreamedResponse {
-        $path = $generator->store($weeklyPlan);
+        $path = $generator->store((int) $weeklyPlan->getKey());
 
         return Storage::disk('local')->download($path);
     }
