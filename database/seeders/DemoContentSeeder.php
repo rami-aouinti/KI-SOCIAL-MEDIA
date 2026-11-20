@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Enums\ContentVersionStatus;
-use App\Models\WeeklyPlan;
-use App\Services\AiAssistedContentWorkflow;
-use App\Services\ContentApprovalService;
-use App\Services\SimulatedContentHandoffService;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
+use App\Application\Services\AiAssistedContentWorkflow;
+use App\Application\Services\ContentApprovalService;
+use App\Application\Services\SimulatedContentHandoffService;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
