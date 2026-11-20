@@ -74,6 +74,22 @@ class SimulatedContentHandoffServiceTest extends TestCase
         $this->assertDatabaseCount('content_handoff_records', 0);
     }
 
+    public function test_handoff_is_blocked_when_work_allocation_is_removed_after_approval(): void
+    {
+        $version = $this->createApprovedVersion();
+        $version->briefing->contentIdea->workAllocations()->delete();
+
+        try {
+            app(SimulatedContentHandoffService::class)->handoff($version);
+            $this->fail('Handoff must require a current work allocation.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('work_allocations', $exception->errors());
+        }
+
+        $this->assertDatabaseCount('content_handoff_records', 0);
+        $this->assertSame(ContentVersionStatus::APPROVED, $version->fresh()->status);
+    }
+
     public function test_non_approved_versions_cannot_be_handed_off(): void
     {
         $version = $this->createVersion();
