@@ -32,7 +32,7 @@ final class RefreshWeeklyReportForContentVersion implements ShouldQueue
         $weeklyPlan = $version?->briefing?->contentIdea?->weeklyPlan;
 
         if ($weeklyPlan !== null) {
-            $generator->store($weeklyPlan);
+            $generator->store((int) $weeklyPlan->getKey());
         }
     }
 }
