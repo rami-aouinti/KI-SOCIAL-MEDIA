@@ -1333,13 +1333,13 @@ Le provider Laravel est le *composition root* : il associe `AiContentGeneratorIn
 
 ### Décisions de migration
 
-Les services existants sont sous `Application/Services`, les DTOs sous `Application/DTO`, les enums et contrats sous `Domain`, et les modèles/repositories Eloquent sous `Infrastructure/Persistence/Eloquent`. Le provider est sous `Infrastructure/Providers`; les contrôleurs et commandes sont dans `Transport`.
+Les services applicatifs sont sous `Application/Services`, les DTOs sous `Application/DTO`, les entités, records, enums et contrats indépendants sous `Domain`, et les modèles/repositories Eloquent sous `Infrastructure/Persistence/Eloquent`. Le provider, le gestionnaire de transactions Laravel, le publisher d'événements et les adaptateurs sont sous `Infrastructure`; les contrôleurs, commandes et événements Laravel exposés sont dans `Transport`.
 
 Les anciens fichiers de compatibilité utilisant `class_alias` ont été supprimés. Les quatre répertoires de premier niveau sous `app/` sont exclusivement `Domain`, `Application`, `Infrastructure` et `Transport`.
 
 ### État réel de la séparation métier
 
-Deux éléments métier indépendants d'Eloquent ont maintenant été introduits : `Domain/Content/ValueObjects/ContentVersionSnapshot` calcule le fingerprint SHA-256 du contenu approuvé, et `Domain/Content/Entities/ContentVersionWorkflow` applique les transitions autorisées du cycle de vie. Les services d'approbation et de handoff utilisent cette entité pour valider les transitions.
+Deux éléments métier indépendants d'Eloquent ont maintenant été introduits : `Domain/Content/ValueObjects/ContentVersionSnapshot` calcule le fingerprint SHA-256 du contenu approuvé, et `Domain/Content/Entities/ContentVersionWorkflow` applique les transitions autorisées du cycle de vie. Les services d'approbation et de handoff utilisent cette entité pour valider les transitions. Les contrats de repositories ne retournent plus de modèles Eloquent : ils exposent des records Domain immuables, construits par les adaptateurs Infrastructure. Les cas d'utilisation de version, approbation et handoff dépendent d'un port de transaction et d'un publisher d'événements, pas directement de `DB` ni des événements Laravel.
 
 La séparation n'est toutefois pas encore complète : certains contrats de repositories retournent encore des modèles Eloquent et plusieurs services Application manipulent directement ces modèles. La prochaine tranche doit remplacer ces contrats par des entités/objets métier et ajouter des mappers dans Infrastructure. Il ne faut pas présenter cette migration comme terminée avant que ces dépendances aient disparu.
 

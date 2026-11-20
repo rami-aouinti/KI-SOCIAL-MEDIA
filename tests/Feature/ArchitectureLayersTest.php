@@ -27,6 +27,26 @@ class ArchitectureLayersTest extends TestCase
         $this->assertSame(['Application', 'Domain', 'Infrastructure', 'Transport'], $directories);
     }
 
+    public function test_domain_has_no_framework_or_persistence_dependencies(): void
+    {
+        $iterator = new \\RecursiveIteratorIterator(
+            new \\RecursiveDirectoryIterator(app_path('Domain'), \\FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $file) {
+            if (! $file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $source = file_get_contents($file->getPathname());
+
+            $this->assertIsString($source);
+            $this->assertStringNotContainsString('Illuminate\\\\', $source, $file->getPathname());
+            $this->assertStringNotContainsString('App\\\\Infrastructure\\\\', $source, $file->getPathname());
+            $this->assertStringNotContainsString('Eloquent\\\\Models', $source, $file->getPathname());
+        }
+    }
+
     public function test_classes_from_each_architecture_layer_are_autoloadable(): void
     {
         $this->assertTrue(class_exists(WeeklyPlanGenerator::class));

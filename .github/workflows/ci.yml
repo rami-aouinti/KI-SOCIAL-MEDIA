@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   quality-and-tests:
@@ -51,7 +51,27 @@ jobs:
           DB_DATABASE: database/database.sqlite
         run: php artisan migrate --force
 
-      - name: Laravel Pint (style check)
+      - name: Laravel Pint (pull request style check)
+        if: github.event_name == 'pull_request'
+        run: vendor/bin/pint --test
+
+      - name: Apply Laravel Pint formatting
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: vendor/bin/pint
+
+      - name: Commit formatting changes
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add app tests database
+            git commit -m "style: apply Laravel Pint formatting"
+            git push origin HEAD:master
+          fi
+
+      - name: Laravel Pint (post-format verification)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: vendor/bin/pint --test
 
       - name: PHPStan
