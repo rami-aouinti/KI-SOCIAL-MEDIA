@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Services;
+namespace App\\Application\\Services;
 
-use App\Application\DTO\WeeklyPlanData;
-use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Validator as LaravelValidator;
+use App\\Application\\DTO\\WeeklyPlanData;
+use App\\Infrastructure\\Persistence\\Eloquent\\Models\\WeeklyPlan;
+use Illuminate\\Support\\Facades\\DB;
+use Illuminate\\Support\\Facades\\Validator;
+use Illuminate\\Validation\\Validator as LaravelValidator;
 
 class WeeklyPlanGenerator
 {
@@ -17,14 +17,8 @@ class WeeklyPlanGenerator
     ) {}
 
     /**
-     * Persist a structured plan after validating both user input and generated ideas.
-     *
-     * @param  array<string, mixed>  $input
-     * @return array{
-     *     plan: WeeklyPlan,
-     *     capacity_report: array<string, mixed>,
-     *     selection_reasons: array<int, array{title: string, priority_type: string, reason: string}>
-     * }
+     * @param array<string, mixed> $input
+     * @return array{plan: WeeklyPlan, capacity_report: array<string, mixed>, selection_reasons: array<int, array{title: string, priority_type: string, reason: string}>}
      */
     public function generate(array $input): array
     {
@@ -70,7 +64,7 @@ class WeeklyPlanGenerator
             $weekStart = $input['week_start'] ?? null;
 
             if (is_string($weekStart)) {
-                $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $weekStart);
+                $date = \\DateTimeImmutable::createFromFormat('!Y-m-d', $weekStart);
 
                 if ($date !== false && $date->format('N') !== '1') {
                     $validator->errors()->add('week_start', 'The week must start on a Monday.');
@@ -83,16 +77,8 @@ class WeeklyPlanGenerator
                 return;
             }
 
-            $priorities = count(array_filter(
-                $ideas,
-                static fn (mixed $idea): bool => is_array($idea)
-                    && ($idea['priority_type'] ?? null) === 'priority'
-            ));
-            $reserves = count(array_filter(
-                $ideas,
-                static fn (mixed $idea): bool => is_array($idea)
-                    && ($idea['priority_type'] ?? null) === 'reserve'
-            ));
+            $priorities = count(array_filter($ideas, static fn (mixed $idea): bool => is_array($idea) && ($idea['priority_type'] ?? null) === 'priority'));
+            $reserves = count(array_filter($ideas, static fn (mixed $idea): bool => is_array($idea) && ($idea['priority_type'] ?? null) === 'reserve'));
 
             if ($priorities !== 3) {
                 $validator->errors()->add('ideas', 'A weekly plan must contain exactly three priority ideas.');
@@ -117,8 +103,6 @@ class WeeklyPlanGenerator
             $plan->inspirations()->createMany($planData->inspirationRows());
 
             foreach ($planData->ideas as $ideaData) {
-                $estimatedMinutes = $ideaData->estimatedMinutes();
-
                 $idea = $plan->contentIdeas()->create([
                     'title' => $ideaData->title,
                     'topic' => $ideaData->topic,
@@ -129,7 +113,7 @@ class WeeklyPlanGenerator
                     'selection_reason' => $ideaData->selectionReason,
                     'responsible_person' => $ideaData->responsiblePerson,
                     'planned_at' => $ideaData->plannedAt,
-                    'estimated_minutes' => $estimatedMinutes,
+                    'estimated_minutes' => $ideaData->estimatedMinutes(),
                 ]);
 
                 $idea->workAllocations()->createMany(array_map(
@@ -140,9 +124,17 @@ class WeeklyPlanGenerator
 
             $plan->load(['inspirations', 'contentIdeas.workAllocations']);
 
+            $allocations = $plan->contentIdeas
+                ->flatMap(static fn ($idea) => $idea->workAllocations)
+                ->map(static fn ($allocation): array => [
+                    'person_key' => $allocation->person_key,
+                    'estimated_minutes' => $allocation->estimated_minutes,
+                ])
+                ->all();
+
             return [
                 'plan' => $plan,
-                'capacity_report' => $this->capacityPlanner->analyze($plan),
+                'capacity_report' => $this->capacityPlanner->analyze($planData->capacityLimits, $allocations),
                 'selection_reasons' => $plan->contentIdeas
                     ->map(static fn ($idea): array => [
                         'title' => $idea->title,
