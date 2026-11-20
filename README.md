@@ -61,7 +61,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ```bash
 # Charger le planning, les inspirations, les cinq idées,
 # le briefing, les variantes, l'approbation et le handoff simulé.
-./vendor/bin/sail artisan db:seed --class=Database\Seeders\DemoContentSeeder
+./vendor/bin/sail artisan db:seed --class="Database\Seeders\DemoContentSeeder"
 
 # Ouvrir le tableau de démonstration
 # http://localhost
@@ -70,7 +70,7 @@ Si le fichier `.env` existe déjà, ne l'écrase pas avec `cp`. Vérifie que la 
 ./vendor/bin/sail artisan weekly-report:generate
 ```
 
-Le seeder est idempotent : le relancer ne crée pas de planning, de version, d'approbation ou de transmission en double. Les données de démonstration utilisent la semaine du 23 novembre 2026 et des identifiants/médias fictifs.
+Après une exécution complète, relancer le seeder ne crée pas de doublons de planning, de version, d'approbation ou de transmission. Le seeder n'est toutefois pas un mécanisme de reprise transactionnelle si l'exécution est interrompue au milieu du workflow. Les données de démonstration utilisent la semaine du 23 novembre 2026 et des identifiants/médias fictifs.
 
 Le rapport est écrit dans `storage/app/private/weekly-reports/`. La page d'accueil propose également un téléchargement direct du rapport.
 
