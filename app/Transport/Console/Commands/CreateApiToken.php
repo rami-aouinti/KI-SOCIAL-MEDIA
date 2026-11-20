@@ -14,7 +14,7 @@ final class CreateApiToken extends Command
     protected $signature = 'social:api-token:create
         {email : Existing workspace user email}
         {--name=CLI token : Human-readable token name}
-        {--abilities=plans:read,plans:write,content:read,content:write,content:approve : Comma-separated abilities}
+        {--abilities=plans:read,content:read : Comma-separated abilities}
         {--days=90 : Token lifetime in days (1-365)}';
 
     protected $description = 'Create a hashed, expiring bearer token for the Social Media API';

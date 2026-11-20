@@ -58,6 +58,34 @@ class ApiAuthenticationTest extends TestCase
             ->assertJsonPath('error.code', 'insufficient_ability');
     }
 
+    public function test_cli_token_creation_defaults_to_read_only_abilities(): void
+    {
+        $user = User::factory()->create(['email' => 'api-editor@example.com']);
+
+        $this->artisan('social:api-token:create', [
+            'email' => $user->email,
+            '--name' => 'Read-only integration',
+        ])->assertExitCode(0);
+
+        $token = ApiToken::query()->firstOrFail();
+
+        $this->assertSame(['plans:read', 'content:read'], $token->abilities);
+        $this->assertSame($user->getKey(), $token->user_id);
+    }
+
+    public function test_cli_can_revoke_an_api_token(): void
+    {
+        $plainText = $this->createToken(['plans:read']);
+        $token = ApiToken::query()->firstOrFail();
+
+        $this->artisan('social:api-token:revoke', [
+            'id' => $token->getKey(),
+        ])->assertExitCode(0);
+
+        $this->assertDatabaseMissing('api_tokens', ['id' => $token->getKey()]);
+        $this->assertNotSame('', $plainText);
+    }
+
     public function test_token_last_used_timestamp_is_updated(): void
     {
         $token = $this->createToken(['plans:read']);
