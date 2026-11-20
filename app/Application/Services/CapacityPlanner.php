@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Models\WeeklyPlan;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 
 class CapacityPlanner
 {
