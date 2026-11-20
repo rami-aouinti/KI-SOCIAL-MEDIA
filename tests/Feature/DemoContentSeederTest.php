@@ -57,7 +57,14 @@ class DemoContentSeederTest extends TestCase
     {
         Artisan::call('db:seed', ['--class' => 'Database\Seeders\DemoContentSeeder']);
 
-        $this->get('/')->assertOk()->assertSee('KI Social Media')->assertSee('Winter eyewear tips')->assertSee('AI generation: simulated mock');
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('KI Social Media')
+            ->assertSee('Winter eyewear tips')
+            ->assertSee('AI generation: simulated mock')
+            ->assertSee('3 priorities · 2 reserves')
+            ->assertSee('planned')
+            ->assertSee('Briefing: ready');
         $this->get('/weekly-plans/'.WeeklyPlan::query()->firstOrFail()->id.'/report')->assertOk();
 
         Storage::fake('local');
