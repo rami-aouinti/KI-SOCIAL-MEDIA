@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\Enums\ContentApprovalDecision;
-use App\Events\ContentApproved;
-use App\Events\ContentRejected;
-use App\Enums\ContentVersionStatus;
-use App\Models\ContentVersion;
-use App\Repositories\Contracts\ContentApprovalRepositoryInterface;
-use App\Repositories\Contracts\ContentVersionRepositoryInterface;
+use App\Domain\Shared\Enums\ContentApprovalDecision;
+use App\Infrastructure\Events\ContentApproved;
+use App\Infrastructure\Events\ContentRejected;
+use App\Domain\Shared\Enums\ContentVersionStatus;
+use App\Infrastructure\Persistence\Eloquent\Models\ContentVersion;
+use App\Domain\Repositories\ContentApprovalRepositoryInterface;
+use App\Domain\Repositories\ContentVersionRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
