@@ -56,8 +56,7 @@ final class WeeklyPlanController extends Controller
         Request $request,
         WeeklyPlanGenerator $generator,
         AutomationEventPublisherInterface $automationEvents,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $result = $generator->generate($request->all());
         $plan = $result['plan'];
 
