@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Services;
 
-use App\DTOs\WeeklyPlanData;
-use App\Models\WeeklyPlan;
+use App\Application\DTO\WeeklyPlanData;
+use App\Infrastructure\Persistence\Eloquent\Models\WeeklyPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Validator as LaravelValidator;
