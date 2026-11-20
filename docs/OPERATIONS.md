@@ -1,5 +1,23 @@
 # Backend operations
 
+## Authentication and initial access
+
+The dashboard and generated weekly reports require an authenticated web
+session. Login is rate-limited to five attempts per minute per client IP.
+Successful login regenerates the session ID; logout invalidates the session
+and rotates its CSRF token. There is deliberately no public registration route.
+
+Create the first workspace user from the application container:
+
+```bash
+docker compose exec laravel.test php artisan social:user:create
+```
+
+The command prompts for a name, email address and password (minimum 12
+characters). Do not seed a known default account in production. Provision
+additional users through the same command and use a deployment secret manager
+for any automation around account creation.
+
 ## Health check
 
 Run dependency checks from the application root:
