@@ -86,15 +86,15 @@ class DemoContentSeeder extends Seeder
         $approvalService = app(ContentApprovalService::class);
 
         if ($version->status === ContentVersionStatus::DRAFT) {
-            $approvalService->submitForReview((int) $version->getKey());
+            $approvalService->submitForReview((int) $version->id);
             $version = $approvalService->approve(
-                (int) $version->getKey(),
+                (int) $version->id,
                 'Demo reviewer',
                 'Synthetic demonstration approval. AI output reviewed by a human.'
             );
         } elseif ($version->status === ContentVersionStatus::IN_REVIEW) {
             $version = $approvalService->approve(
-                (int) $version->getKey(),
+                (int) $version->id,
                 'Demo reviewer',
                 'Synthetic demonstration approval. AI output reviewed by a human.'
             );
