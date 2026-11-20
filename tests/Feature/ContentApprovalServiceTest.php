@@ -58,7 +58,7 @@ class ContentApprovalServiceTest extends TestCase
         $this->assertDatabaseCount('content_version_approvals', 0);
     }
 
-    public function test_rejected_version_returns_to_draft_and_keeps_rejection_record(): void
+    public function test_rejected_version_is_terminal_and_keeps_rejection_record(): void
     {
         [$version] = $this->createVersion();
         $service = app(ContentApprovalService::class);
