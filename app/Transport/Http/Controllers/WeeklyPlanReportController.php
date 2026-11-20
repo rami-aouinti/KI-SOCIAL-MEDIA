@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\\Transport\\Http\\Controllers;
+namespace App\Transport\Http\Controllers;
 
-use App\\Application\\Services\\WeeklyReportGenerator;
-use Illuminate\\Support\\Facades\\Storage;
-use Symfony\\Component\\HttpFoundation\\StreamedResponse;
+use App\Application\Services\WeeklyReportGenerator;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WeeklyPlanReportController extends Controller
 {
