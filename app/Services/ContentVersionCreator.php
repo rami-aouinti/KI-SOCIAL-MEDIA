@@ -59,9 +59,9 @@ class ContentVersionCreator
             return $lockedBriefing->versions()->create([
                 'version_number' => $nextVersion,
                 'snapshot' => $snapshot,
-                'media_reference' => $mediaReference,
-                'channels' => $channels,
-                'scheduled_at' => $scheduledAt,
+                'media_reference' => $versionData->mediaReference,
+                'channels' => $versionData->channels,
+                'scheduled_at' => $versionData->scheduledAt,
                 'content_hash' => hash('sha256', $canonicalSnapshot),
                 'status' => 'draft',
             ]);
