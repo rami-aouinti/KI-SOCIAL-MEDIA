@@ -90,10 +90,12 @@ are configured.
 ## n8n automation
 
 n8n runs as a separate Docker Compose service and uses its own persistent
-`n8n-data` volume. It is intentionally bound to `127.0.0.1` on the host;
-do not expose its editor directly to the public internet. On first start, create
-the n8n owner account in the editor. Keep the encryption key stable: losing it
-can make saved n8n credentials unreadable.
+`n8n-data` volume. The local stack uses n8n's default SQLite database in that
+volume; configure PostgreSQL, tested backups and retention before production.
+The editor is intentionally bound to `127.0.0.1` on the host; do not expose it
+directly to the public internet. On first start, create the n8n owner account
+in the editor. Keep the encryption key stable: losing it can make saved n8n
+credentials unreadable.
 
 ### First-time setup
 
